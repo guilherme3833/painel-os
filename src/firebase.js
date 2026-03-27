@@ -6,6 +6,8 @@ import {
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
   updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from 'firebase/auth'
 
 const firebaseConfig = {
@@ -32,6 +34,12 @@ export async function cadastrar(nome, email, senha) {
 
 export function esqueceuSenha(email) {
   return sendPasswordResetEmail(auth, email)
+}
+
+const googleProvider = new GoogleAuthProvider()
+
+export function loginComGoogle() {
+  return signInWithPopup(auth, googleProvider)
 }
 
 export function logout() {
