@@ -18,6 +18,8 @@ const BADGE_PALETTES = [
   { bg: 'bg-cyan-500/10', text: 'text-cyan-400', border: 'border-cyan-500/30', dot: 'bg-cyan-400' },
 ]
 
+const PIZZA_CORES = ['#3b82f6', '#a855f7', '#10b981', '#f59e0b', '#f43f5e', '#06b6d4', '#f97316', '#14b8a6', '#8b5cf6', '#ec4899']
+
 function hashString(str) {
   let hash = 0
   for (let i = 0; i < str.length; i++) {
@@ -34,6 +36,122 @@ function Badge({ status }) {
       <span className={`w-1.5 h-1.5 rounded-full ${palette.dot}`} />
       {status}
     </span>
+  )
+}
+
+function PizzaChart({ dados }) {
+  const total = dados.reduce((a, d) => a + Number(d.total), 0)
+  if (total === 0) return <p className="text-slate-500 text-sm">Sem dados.</p>
+
+  const cx = 100, cy = 100, r = 85, ri = 38
+  let angulo = -Math.PI / 2
+
+  const fatias = dados.map((d, i) => {
+    const qtd = Number(d.total)
+    const arco = (qtd / total) * 2 * Math.PI
+    const x1 = cx + r * Math.cos(angulo)
+    const y1 = cy + r * Math.sin(angulo)
+    angulo += arco
+    const x2 = cx + r * Math.cos(angulo)
+    const y2 = cy + r * Math.sin(angulo)
+    const large = arco > Math.PI ? 1 : 0
+    const path = `M ${cx} ${cy} L ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} Z`
+    return { ...d, qtd, path, cor: PIZZA_CORES[i % PIZZA_CORES.length] }
+  })
+
+  return (
+    <div className="flex flex-col md:flex-row items-center gap-8">
+      <svg viewBox="0 0 200 200" className="w-52 h-52 flex-shrink-0">
+        {fatias.map((f, i) => (
+          <path key={i} d={f.path} fill={f.cor} stroke="#0f172a" strokeWidth="1.5" />
+        ))}
+        <circle cx={cx} cy={cy} r={ri} fill="#0f172a" />
+        <text x={cx} y={cy - 6} textAnchor="middle" fill="white" fontSize="16" fontWeight="bold">{total}</text>
+        <text x={cx} y={cy + 10} textAnchor="middle" fill="#94a3b8" fontSize="9">abertas</text>
+      </svg>
+
+      <div className="flex flex-col gap-2.5 w-full">
+        {fatias.map((f, i) => (
+          <div key={i} className="flex items-center gap-3">
+            <div className="w-3 h-3 rounded-sm flex-shrink-0" style={{ backgroundColor: f.cor }} />
+            <span className="text-sm text-slate-300 flex-1 truncate">{f.status || 'Sem status'}</span>
+            <span className="text-sm font-medium text-white w-8 text-right">{f.qtd}</span>
+            <span className="text-xs text-slate-500 w-10 text-right">{Math.round((f.qtd / total) * 100)}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function Dashboard({ onVerLista }) {
+  const [dados, setDados] = useState([])
+  const [totais, setTotais] = useState({ total: 0, abertas: 0, encerradas: 0 })
+  const [carregando, setCarregando] = useState(true)
+  const [erro, setErro] = useState('')
+
+  useEffect(() => {
+    Promise.all([
+      fetch(`${API}?acao=grafico`).then(r => r.json()),
+      fetch(`${API}?acao=total`).then(r => r.json()),
+    ])
+      .then(([grafico, total]) => {
+        setDados(grafico)
+        const totalGeral = Number(total[0]?.total || 0)
+        const abertas = grafico.reduce((a, d) => a + Number(d.total), 0)
+        setTotais({ total: totalGeral, abertas, encerradas: totalGeral - abertas })
+        setCarregando(false)
+      })
+      .catch(() => { setErro('Erro ao carregar dados.'); setCarregando(false) })
+  }, [])
+
+  return (
+    <div className="max-w-3xl mx-auto px-4 py-6">
+
+      {/* Cards resumo */}
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-4">
+          <p className="text-xs text-slate-500 mb-1">Total no banco</p>
+          <p className="text-2xl font-medium text-white">{totais.total.toLocaleString()}</p>
+        </div>
+        <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4">
+          <p className="text-xs text-amber-600 mb-1">Abertas</p>
+          <p className="text-2xl font-medium text-amber-400">{totais.abertas.toLocaleString()}</p>
+        </div>
+        <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4">
+          <p className="text-xs text-emerald-600 mb-1">Encerradas</p>
+          <p className="text-2xl font-medium text-emerald-400">{totais.encerradas.toLocaleString()}</p>
+        </div>
+      </div>
+
+      {/* Gráfico pizza */}
+      <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-6 mb-6">
+        <div className="mb-5">
+          <h2 className="text-sm font-medium text-white">OS Abertas por Status</h2>
+          <p className="text-xs text-slate-500 mt-0.5">Somente ordens não encerradas</p>
+        </div>
+
+        {carregando && (
+          <div className="flex items-center justify-center py-12 gap-3">
+            <div className="w-7 h-7 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            <p className="text-slate-500 text-sm">Carregando...</p>
+          </div>
+        )}
+
+        {erro && (
+          <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl text-sm">{erro}</div>
+        )}
+
+        {!carregando && !erro && <PizzaChart dados={dados} />}
+      </div>
+
+      <button
+        onClick={onVerLista}
+        className="w-full flex items-center justify-center gap-2 text-sm border border-slate-700 text-slate-400 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition"
+      >
+        Ver lista completa de ordens →
+      </button>
+    </div>
   )
 }
 
@@ -125,48 +243,7 @@ function CartaoOS({ os, index }) {
   )
 }
 
-function Grafico({ ordens }) {
-  const contagem = {}
-  ordens.forEach(os => {
-    const s = os.status || 'Sem status'
-    contagem[s] = (contagem[s] || 0) + 1
-  })
-  const top = Object.entries(contagem).sort((a, b) => b[1] - a[1]).slice(0, 6)
-  const max = top[0]?.[1] || 1
-  const totalGrafico = top.reduce((a, [, v]) => a + v, 0)
-  const CORES = ['bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-cyan-500']
-
-  return (
-    <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-5 mb-6">
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <h2 className="text-sm font-medium text-white">Distribuição por status</h2>
-          <p className="text-xs text-slate-500 mt-0.5">Página atual · {totalGrafico} ordens</p>
-        </div>
-      </div>
-      <div className="flex flex-col gap-3">
-        {top.map(([status, qtd], i) => (
-          <div key={status} className="flex items-center gap-3">
-            <div className={`w-2 h-2 rounded-full flex-shrink-0 ${CORES[i]}`} />
-            <span className="text-xs text-slate-400 w-40 truncate">{status}</span>
-            <div className="flex-1 bg-slate-700 rounded-full h-1.5 overflow-hidden">
-              <div
-                className={`h-1.5 rounded-full ${CORES[i]} transition-all duration-500`}
-                style={{ width: `${(qtd / max) * 100}%` }}
-              />
-            </div>
-            <div className="flex items-center gap-2 w-16 justify-end">
-              <span className="text-xs text-slate-400">{qtd}</span>
-              <span className="text-xs text-slate-600">{Math.round((qtd / totalGrafico) * 100)}%</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function App() {
+function Lista() {
   const [ordens, setOrdens] = useState([])
   const [total, setTotal] = useState(0)
   const [pagina, setPagina] = useState(0)
@@ -212,6 +289,122 @@ function App() {
   const abertas = ordens.filter(o => o.encerrado !== 's').length
 
   return (
+    <div className="max-w-3xl mx-auto px-4 py-6">
+
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-4">
+          <p className="text-xs text-slate-500 mb-1">Total no banco</p>
+          <p className="text-2xl font-medium text-white">{total.toLocaleString()}</p>
+        </div>
+        <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4">
+          <p className="text-xs text-emerald-600 mb-1">Encerradas (pág.)</p>
+          <p className="text-2xl font-medium text-emerald-400">{encerradas}</p>
+        </div>
+        <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4">
+          <p className="text-xs text-amber-600 mb-1">Abertas (pág.)</p>
+          <p className="text-2xl font-medium text-amber-400">{abertas}</p>
+        </div>
+      </div>
+
+      <div className="flex gap-3 mb-5 flex-wrap">
+        <div className="flex-1 relative min-w-48">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">🔍</span>
+          <input
+            value={busca}
+            onChange={e => setBusca(e.target.value)}
+            placeholder="Buscar número ou descrição..."
+            className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition"
+          />
+        </div>
+        <select
+          value={filtroStatus}
+          onChange={e => setFiltroStatus(e.target.value)}
+          className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500 transition"
+        >
+          <option value="todos">Todos os status</option>
+          {statusDisponiveis.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+      </div>
+
+      {carregando && (
+        <div className="flex flex-col items-center justify-center py-20 gap-3">
+          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-slate-500 text-sm">Carregando ordens...</p>
+        </div>
+      )}
+
+      {erro && (
+        <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl text-sm">{erro}</div>
+      )}
+
+      {!carregando && !erro && (
+        <>
+          <p className="text-slate-600 text-xs mb-3">{filtradas.length} ordem(ns) nesta página</p>
+
+          {filtradas.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 gap-2 text-slate-500">
+              <span className="text-3xl">🔎</span>
+              <p className="text-sm">Nenhuma ordem encontrada para este filtro.</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3 mb-8">
+              {filtradas.map((os, i) => <CartaoOS key={os.codigo} os={os} index={i} />)}
+            </div>
+          )}
+
+          <div className="flex items-center justify-between bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3">
+            <button
+              onClick={() => mudarPagina(pagina - 1)}
+              disabled={pagina === 0}
+              className="flex items-center gap-1 text-xs text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition"
+            >
+              ← Anterior
+            </button>
+
+            <div className="flex items-center gap-1">
+              {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
+                const p = Math.max(0, Math.min(pagina - 2, totalPaginas - 5)) + i
+                return (
+                  <button
+                    key={p}
+                    onClick={() => mudarPagina(p)}
+                    className={`w-8 h-8 text-xs rounded-lg transition ${p === pagina ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
+                  >
+                    {p + 1}
+                  </button>
+                )
+              })}
+              {totalPaginas > 5 && pagina < totalPaginas - 3 && (
+                <span className="text-slate-600 text-xs px-1">...</span>
+              )}
+              {totalPaginas > 5 && pagina < totalPaginas - 3 && (
+                <button
+                  onClick={() => mudarPagina(totalPaginas - 1)}
+                  className="w-8 h-8 text-xs rounded-lg transition text-slate-400 hover:bg-slate-700 hover:text-white"
+                >
+                  {totalPaginas}
+                </button>
+              )}
+            </div>
+
+            <button
+              onClick={() => mudarPagina(pagina + 1)}
+              disabled={pagina >= totalPaginas - 1}
+              className="flex items-center gap-1 text-xs text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition"
+            >
+              Próxima →
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+function App() {
+  const [pagina, setPagina] = useState('dashboard')
+
+  return (
     <div className="min-h-screen bg-slate-950 text-white">
 
       {/* Header */}
@@ -219,136 +412,29 @@ function App() {
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-sm">🗂</div>
-            <div>
-              <h1 className="text-sm font-medium text-white">Ordens de Serviço</h1>
-              <p className="text-slate-500 text-xs">{total.toLocaleString()} registros · Pág. {pagina + 1}/{totalPaginas}</p>
-            </div>
+            <h1 className="text-sm font-medium text-white">Ordens de Serviço</h1>
           </div>
-          <button
-            onClick={() => buscarOrdens(pagina)}
-            className="flex items-center gap-2 text-xs border border-slate-700 text-slate-400 px-3 py-1.5 rounded-lg hover:bg-slate-800 hover:text-white transition"
-          >
-            🔄 Atualizar
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPagina('dashboard')}
+              className={`text-xs px-3 py-1.5 rounded-lg transition ${pagina === 'dashboard' ? 'bg-blue-600 text-white' : 'border border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white'}`}
+            >
+              Dashboard
+            </button>
+            <button
+              onClick={() => setPagina('lista')}
+              className={`text-xs px-3 py-1.5 rounded-lg transition ${pagina === 'lista' ? 'bg-blue-600 text-white' : 'border border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white'}`}
+            >
+              Lista
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 py-6">
-
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-4">
-            <p className="text-xs text-slate-500 mb-1">Total no banco</p>
-            <p className="text-2xl font-medium text-white">{total.toLocaleString()}</p>
-          </div>
-          <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4">
-            <p className="text-xs text-emerald-600 mb-1">Encerradas (pág.)</p>
-            <p className="text-2xl font-medium text-emerald-400">{encerradas}</p>
-          </div>
-          <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4">
-            <p className="text-xs text-amber-600 mb-1">Abertas (pág.)</p>
-            <p className="text-2xl font-medium text-amber-400">{abertas}</p>
-          </div>
-        </div>
-
-        {/* Gráfico */}
-        {!carregando && ordens.length > 0 && <Grafico ordens={ordens} />}
-
-        {/* Filtros */}
-        <div className="flex gap-3 mb-5 flex-wrap">
-          <div className="flex-1 relative min-w-48">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">🔍</span>
-            <input
-              value={busca}
-              onChange={e => setBusca(e.target.value)}
-              placeholder="Buscar número ou descrição..."
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition"
-            />
-          </div>
-          <select
-            value={filtroStatus}
-            onChange={e => setFiltroStatus(e.target.value)}
-            className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500 transition"
-          >
-            <option value="todos">Todos os status</option>
-            {statusDisponiveis.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </div>
-
-        {/* Carregando */}
-        {carregando && (
-          <div className="flex flex-col items-center justify-center py-20 gap-3">
-            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-            <p className="text-slate-500 text-sm">Carregando ordens...</p>
-          </div>
-        )}
-
-        {erro && (
-          <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl text-sm">{erro}</div>
-        )}
-
-        {!carregando && !erro && (
-          <>
-            <p className="text-slate-600 text-xs mb-3">{filtradas.length} ordem(ns) nesta página</p>
-
-            {filtradas.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 gap-2 text-slate-500">
-                <span className="text-3xl">🔎</span>
-                <p className="text-sm">Nenhuma ordem encontrada para este filtro.</p>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-3 mb-8">
-                {filtradas.map((os, i) => <CartaoOS key={os.codigo} os={os} index={i} />)}
-              </div>
-            )}
-
-            {/* Paginação */}
-            <div className="flex items-center justify-between bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3">
-              <button
-                onClick={() => mudarPagina(pagina - 1)}
-                disabled={pagina === 0}
-                className="flex items-center gap-1 text-xs text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition"
-              >
-                ← Anterior
-              </button>
-
-              <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
-                  const p = Math.max(0, Math.min(pagina - 2, totalPaginas - 5)) + i
-                  return (
-                    <button
-                      key={p}
-                      onClick={() => mudarPagina(p)}
-                      className={`w-8 h-8 text-xs rounded-lg transition ${p === pagina ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
-                    >
-                      {p + 1}
-                    </button>
-                  )
-                })}
-                {totalPaginas > 5 && pagina < totalPaginas - 3 && (
-                  <span className="text-slate-600 text-xs px-1">...</span>
-                )}
-                {totalPaginas > 5 && pagina < totalPaginas - 3 && (
-                  <button
-                    onClick={() => mudarPagina(totalPaginas - 1)}
-                    className="w-8 h-8 text-xs rounded-lg transition text-slate-400 hover:bg-slate-700 hover:text-white"
-                  >
-                    {totalPaginas}
-                  </button>
-                )}
-              </div>
-
-              <button
-                onClick={() => mudarPagina(pagina + 1)}
-                disabled={pagina >= totalPaginas - 1}
-                className="flex items-center gap-1 text-xs text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition"
-              >
-                Próxima →
-              </button>
-            </div>
-          </>
-        )}
-      </div>
+      {pagina === 'dashboard'
+        ? <Dashboard onVerLista={() => setPagina('lista')} />
+        : <Lista />
+      }
     </div>
   )
 }

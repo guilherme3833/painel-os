@@ -1,0 +1,268 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "path": "ordens",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-1408, 432],
+      "id": "2e848317-8cfb-48fd-89c9-970d2aa132e6",
+      "name": "Webhook",
+      "webhookId": "b076f6ef-3e57-46e1-83b3-b62db752fb67"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.query.acao }}",
+                    "rightValue": "total",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "a3e4859a-0c13-492c-b869-0d5286ecc2b6"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "total"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "31365ecb-ce40-45e1-9aa5-c42744533fdf",
+                    "leftValue": "={{ $json.query.acao }}",
+                    "rightValue": "fallback",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "fallback"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "cc112233-4455-6677-8899-aabbccddeeff",
+                    "leftValue": "={{ $json.query.acao }}",
+                    "rightValue": "grafico",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "grafico"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [-1168, 432],
+      "id": "1b8c7b56-ad19-4dbd-91a3-29ac329af3da",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COUNT(*) as total FROM Ordem_Servico",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [-928, 304],
+      "id": "da0c990a-e25d-4580-8def-df23dae9b91a",
+      "name": "MySQL Total",
+      "credentials": {
+        "mySql": {
+          "id": "5pBRjyVxIwR5AI6n",
+          "name": "MySQL Call Center"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  os.codigo,\n  os.numero,\n  os.data_abertura,\n  os.data_encerramento,\n  os.status,\n  os.descricao,\n  os.observacao,\n  os.arquivo_pdf,\n  os.encerrado,\n  os.id_clientes,\n  os.foto_01,\n  os.foto_02,\n  os.foto_03,\n  os.foto_04,\n  os.foto_05,\n  os.atualizado_em\nFROM Ordem_Servico os\nORDER BY os.codigo DESC\nLIMIT {{ $json.query.limit || 20 }} OFFSET {{ $json.query.offset || 0 }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [-928, 544],
+      "id": "8e4018bb-104e-41e7-bee0-b84be3a42f80",
+      "name": "MySQL Ordens",
+      "credentials": {
+        "mySql": {
+          "id": "5pBRjyVxIwR5AI6n",
+          "name": "MySQL Call Center"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  COALESCE(status, 'Sem status') AS status,\n  COUNT(*) AS total\nFROM Ordem_Servico\nWHERE encerrado = 'n' OR encerrado IS NULL\nGROUP BY status\nORDER BY total DESC",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [-928, 784],
+      "id": "ff001122-3344-5566-7788-99aabbccddee",
+      "name": "MySQL Grafico",
+      "credentials": {
+        "mySql": {
+          "id": "5pBRjyVxIwR5AI6n",
+          "name": "MySQL Call Center"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [-688, 304],
+      "id": "80529973-3fde-4f7c-9181-54d3a67e681d",
+      "name": "Respond Total"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [-688, 544],
+      "id": "e3105bf4-a5df-4797-adc6-484c65470140",
+      "name": "Respond Ordens"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [-688, 784],
+      "id": "ab112233-4455-6677-8899-ccddeeff0011",
+      "name": "Respond Grafico"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "MySQL Total",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "MySQL Ordens",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "MySQL Grafico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MySQL Total": {
+      "main": [
+        [
+          {
+            "node": "Respond Total",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MySQL Ordens": {
+      "main": [
+        [
+          {
+            "node": "Respond Ordens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MySQL Grafico": {
+      "main": [
+        [
+          {
+            "node": "Respond Grafico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ddde3ba2d4f38e1765392468f917b5df6604c73bfaf362e501797732bbfb53bc"
+  }
+}
