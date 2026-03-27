@@ -30,3 +30,7 @@ body {
 .fade-up {
   animation: fadeUp 0.35s ease both;
 }
+
+.animate-fade-up {
+  animation: fadeUp 0.3s ease both;
+}
