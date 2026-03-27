@@ -1,5 +1,12 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth'
+import {
+  getAuth,
+  signOut,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  updateProfile,
+} from 'firebase/auth'
 
 const firebaseConfig = {
   apiKey: "AIzaSyAG46e5T0rZvNbD0F1aTiNUxsLLY4nVnxM",
@@ -13,10 +20,18 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig)
 export const auth = getAuth(app)
 
-const provider = new GoogleAuthProvider()
+export function loginComEmail(email, senha) {
+  return signInWithEmailAndPassword(auth, email, senha)
+}
 
-export function loginComGoogle() {
-  return signInWithPopup(auth, provider)
+export async function cadastrar(nome, email, senha) {
+  const cred = await createUserWithEmailAndPassword(auth, email, senha)
+  await updateProfile(cred.user, { displayName: nome })
+  return cred
+}
+
+export function esqueceuSenha(email) {
+  return sendPasswordResetEmail(auth, email)
 }
 
 export function logout() {
