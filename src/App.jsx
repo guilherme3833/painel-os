@@ -248,7 +248,7 @@ function Dashboard({ onVerLista, onToast }) {
 
       {/* Cards resumo */}
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="relative overflow-hidden bg-gradient-to-br from-slate-800 to-slate-800/40 border border-slate-700/40 rounded-2xl p-5">
+        <div className="relative overflow-hidden bg-white/[0.05] border border-white/8 rounded-2xl p-5">
           <p className="text-[11px] font-semibold text-slate-500 mb-2 uppercase tracking-widest">Total</p>
           <p className="text-3xl font-bold text-white tabular-nums"><ContadorAnimado valor={totais.total} /></p>
           <span className="absolute bottom-3 right-4 text-3xl opacity-10 select-none">📋</span>
@@ -266,7 +266,7 @@ function Dashboard({ onVerLista, onToast }) {
       </div>
 
       {/* Gráfico donut */}
-      <div className="bg-slate-800/50 border border-slate-700/40 rounded-2xl p-6 mb-4">
+      <div className="bg-white/[0.04] border border-white/8 rounded-2xl p-6 mb-4">
         <div className="flex items-start justify-between mb-6">
           <div>
             <h2 className="font-semibold text-white text-base">OS Abertas por Status</h2>
@@ -283,7 +283,7 @@ function Dashboard({ onVerLista, onToast }) {
 
       <button
         onClick={onVerLista}
-        className="w-full flex items-center justify-center gap-2 text-sm text-slate-400 border border-slate-700/40 px-4 py-3 rounded-2xl hover:bg-slate-800/50 hover:text-white transition-all duration-200"
+        className="w-full flex items-center justify-center gap-2 text-sm text-slate-400 border border-white/8 px-4 py-3 rounded-2xl hover:bg-white/[0.06] hover:text-white transition-all duration-200"
       >
         Ver lista completa de ordens <span>→</span>
       </button>
@@ -298,13 +298,13 @@ function CartaoOS({ os, index }) {
 
   return (
     <div
-      className={`bg-slate-800/50 border border-slate-700/40 border-l-4 ${corBorda} rounded-2xl overflow-hidden hover:bg-slate-800/70 hover:border-slate-600/60 transition-all duration-200 cursor-pointer`}
+      className={`bg-white/[0.04] border border-white/8 border-l-4 ${corBorda} rounded-2xl overflow-hidden hover:bg-white/[0.07] transition-all duration-200 cursor-pointer`}
       onClick={() => setAberto(!aberto)}
     >
       <div className="p-4">
         <div className="flex items-start justify-between gap-3 mb-2.5">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-mono text-xs font-semibold text-slate-400 bg-slate-700/60 px-2.5 py-0.5 rounded-lg">#{os.numero}</span>
+            <span className="font-mono text-xs font-semibold text-slate-400 bg-white/10 px-2.5 py-0.5 rounded-lg">#{os.numero}</span>
             {os.status && <Badge status={os.status} />}
           </div>
           <span className={`text-slate-500 text-sm flex-shrink-0 transition-transform duration-300 ${aberto ? 'rotate-180' : ''}`}>▾</span>
@@ -326,7 +326,7 @@ function CartaoOS({ os, index }) {
       </div>
 
       <div className={`overflow-hidden transition-all duration-300 ease-in-out ${aberto ? 'max-h-96' : 'max-h-0'}`}>
-        <div className="border-t border-slate-700/40 bg-slate-900/40 p-4">
+        <div className="border-t border-white/5 bg-black/20 p-4">
           <div className="grid grid-cols-2 gap-4 text-sm mb-4">
             <div>
               <p className="text-[11px] font-semibold text-slate-500 mb-1 uppercase tracking-wide">Abertura</p>
@@ -343,7 +343,7 @@ function CartaoOS({ os, index }) {
           {os.observacao && (
             <div className="mb-3">
               <p className="text-[11px] font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Observação</p>
-              <p className="text-slate-300 text-sm bg-slate-800/70 rounded-xl p-3 border border-slate-700/40 leading-relaxed">{os.observacao}</p>
+              <p className="text-slate-300 text-sm bg-white/[0.04] rounded-xl p-3 border border-white/8 leading-relaxed">{os.observacao}</p>
             </div>
           )}
 
@@ -424,7 +424,7 @@ function Lista() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 fade-up">
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="relative overflow-hidden bg-gradient-to-br from-slate-800 to-slate-800/40 border border-slate-700/40 rounded-2xl p-5">
+        <div className="relative overflow-hidden bg-white/[0.05] border border-white/8 rounded-2xl p-5">
           <p className="text-[11px] font-semibold text-slate-500 mb-2 uppercase tracking-widest">Total</p>
           <p className="text-2xl font-bold text-white tabular-nums">{total.toLocaleString('pt-BR')}</p>
           <span className="absolute bottom-3 right-4 text-2xl opacity-10 select-none">📋</span>
@@ -448,13 +448,13 @@ function Lista() {
             value={busca}
             onChange={e => setBusca(e.target.value)}
             placeholder="Buscar por número ou descrição..."
-            className="w-full bg-slate-800/50 border border-slate-700/40 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 focus:bg-slate-800 transition-all"
+            className="w-full bg-white/[0.05] border border-white/8 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/60 focus:bg-white/[0.07] transition-all"
           />
         </div>
         <select
           value={filtroStatus}
           onChange={e => setFiltroStatus(e.target.value)}
-          className="bg-slate-800/50 border border-slate-700/40 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500/50 transition-all"
+          className="bg-white/[0.05] border border-white/8 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500/60 transition-all"
         >
           <option value="todos">Todos os status</option>
           {statusDisponiveis.map(s => <option key={s} value={s}>{s}</option>)}
@@ -488,7 +488,7 @@ function Lista() {
             </div>
           )}
 
-          <div className="flex items-center justify-between bg-slate-800/50 border border-slate-700/40 rounded-2xl px-4 py-3">
+          <div className="flex items-center justify-between bg-white/[0.04] border border-white/8 rounded-2xl px-4 py-3">
             <button onClick={() => mudarPagina(pagina - 1)} disabled={pagina === 0}
               className="text-xs text-slate-400 hover:text-white disabled:opacity-25 disabled:cursor-not-allowed transition-colors px-2 py-1">
               ← Anterior
@@ -498,7 +498,7 @@ function Lista() {
                 const p = Math.max(0, Math.min(pagina - 2, totalPaginas - 5)) + i
                 return (
                   <button key={p} onClick={() => mudarPagina(p)}
-                    className={`w-8 h-8 text-xs rounded-xl transition-all ${p === pagina ? 'bg-indigo-600 text-white font-semibold' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}>
+                    className={`w-8 h-8 text-xs rounded-xl transition-all ${p === pagina ? 'bg-indigo-600 text-white font-semibold' : 'text-slate-400 hover:bg-white/10 hover:text-white'}`}>
                     {p + 1}
                   </button>
                 )
@@ -507,7 +507,7 @@ function Lista() {
                 <>
                   <span className="text-slate-600 text-xs px-1">...</span>
                   <button onClick={() => mudarPagina(totalPaginas - 1)}
-                    className="w-8 h-8 text-xs rounded-xl text-slate-400 hover:bg-slate-700 hover:text-white transition-all">
+                    className="w-8 h-8 text-xs rounded-xl text-slate-400 hover:bg-white/10 hover:text-white transition-all">
                     {totalPaginas}
                   </button>
                 </>
@@ -604,19 +604,31 @@ function TelaLogin() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
-      <div className="w-full max-w-sm fade-up">
+    <div className="min-h-screen bg-[#0f1623] bg-grid flex items-center justify-center px-4 relative overflow-hidden">
+
+      {/* Orbs tecnológicos */}
+      <div className="orb-1 absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-indigo-600 opacity-20 blur-[120px] pointer-events-none" />
+      <div className="orb-2 absolute bottom-[-15%] right-[-10%] w-[600px] h-[600px] rounded-full bg-violet-600 opacity-15 blur-[140px] pointer-events-none" />
+      <div className="orb-3 absolute top-[40%] right-[20%] w-[300px] h-[300px] rounded-full bg-cyan-500 opacity-10 blur-[100px] pointer-events-none" />
+
+      {/* Linhas decorativas */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.04]" xmlns="http://www.w3.org/2000/svg">
+        <line x1="0" y1="30%" x2="100%" y2="30%" stroke="#818cf8" strokeWidth="1" strokeDasharray="6 12"/>
+        <line x1="0" y1="70%" x2="100%" y2="70%" stroke="#818cf8" strokeWidth="1" strokeDasharray="6 12"/>
+        <line x1="30%" y1="0" x2="30%" y2="100%" stroke="#818cf8" strokeWidth="1" strokeDasharray="6 12"/>
+        <line x1="70%" y1="0" x2="70%" y2="100%" stroke="#818cf8" strokeWidth="1" strokeDasharray="6 12"/>
+      </svg>
+
+      <div className="w-full max-w-sm fade-up relative z-10">
 
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-500/20 text-3xl mx-auto mb-5">
-            🗂
-          </div>
+          <img src="/logo.jpg" alt="Octek" className="w-[50%] mx-auto mb-5 rounded-2xl" />
           <h1 className="text-xl font-bold text-white">{titulos[tela].titulo}</h1>
           <p className="text-slate-500 text-sm mt-1.5">{titulos[tela].sub}</p>
         </div>
 
-        <div className="bg-slate-800/50 border border-slate-700/40 rounded-2xl p-6">
+        <div className="bg-white/[0.05] border border-white/8 rounded-2xl p-6">
 
           {/* LOGIN */}
           {tela === 'login' && (
@@ -624,12 +636,12 @@ function TelaLogin() {
               <input
                 name="email" type="email" placeholder="E-mail" required
                 value={form.email} onChange={atualizar}
-                className="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/60 transition-all"
+                className="w-full bg-white/[0.06] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/60 transition-all"
               />
               <input
                 name="senha" type="password" placeholder="Senha" required
                 value={form.senha} onChange={atualizar}
-                className="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/60 transition-all"
+                className="w-full bg-white/[0.06] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/60 transition-all"
               />
               {erro && <p className="text-red-400 text-xs">{erro}</p>}
               <button type="submit" disabled={carregando}
@@ -668,22 +680,22 @@ function TelaLogin() {
               <input
                 name="nome" type="text" placeholder="Nome completo" required
                 value={form.nome} onChange={atualizar}
-                className="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/60 transition-all"
+                className="w-full bg-white/[0.06] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/60 transition-all"
               />
               <input
                 name="email" type="email" placeholder="E-mail" required
                 value={form.email} onChange={atualizar}
-                className="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/60 transition-all"
+                className="w-full bg-white/[0.06] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/60 transition-all"
               />
               <input
                 name="senha" type="password" placeholder="Senha (mín. 6 caracteres)" required
                 value={form.senha} onChange={atualizar}
-                className="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/60 transition-all"
+                className="w-full bg-white/[0.06] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/60 transition-all"
               />
               <input
                 name="confirmar" type="password" placeholder="Confirmar senha" required
                 value={form.confirmar} onChange={atualizar}
-                className="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/60 transition-all"
+                className="w-full bg-white/[0.06] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/60 transition-all"
               />
               {erro && <p className="text-red-400 text-xs">{erro}</p>}
               <button type="submit" disabled={carregando}
@@ -700,7 +712,7 @@ function TelaLogin() {
               <input
                 name="email" type="email" placeholder="Seu e-mail" required
                 value={form.email} onChange={atualizar}
-                className="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/60 transition-all"
+                className="w-full bg-white/[0.06] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/60 transition-all"
               />
               {erro && <p className="text-red-400 text-xs">{erro}</p>}
               {sucesso && <p className="text-emerald-400 text-xs">{sucesso}</p>}
@@ -739,6 +751,7 @@ function App() {
   const [usuario, setUsuario] = useState(undefined)
   const [pagina, setPagina] = useState('dashboard')
   const [toasts, setToasts] = useState([])
+  const [sidebarAberta, setSidebarAberta] = useState(true)
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -759,56 +772,134 @@ function App() {
 
   // Carregando estado inicial do auth
   if (usuario === undefined) return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+    <div className="min-h-screen bg-[#0f1623] flex items-center justify-center">
       <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
     </div>
   )
 
   if (!usuario) return <TelaLogin />
 
-  return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      <div className="bg-slate-900/80 border-b border-slate-800/60 px-6 py-4 sticky top-0 z-10 backdrop-blur-md">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 text-base">
-              🗂
-            </div>
-            <div>
-              <h1 className="text-sm font-semibold text-white leading-tight">Ordens de Serviço</h1>
-              <p className="text-[11px] text-slate-500 capitalize leading-tight mt-0.5">{saudacao()} · {formatarData()}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 bg-slate-800/60 p-1 rounded-xl border border-slate-700/40">
-              <button
-                onClick={() => setPagina('dashboard')}
-                className={`text-xs px-3 py-1.5 rounded-lg transition-all duration-200 font-medium ${pagina === 'dashboard' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'}`}
-              >
-                Dashboard
-              </button>
-              <button
-                onClick={() => setPagina('lista')}
-                className={`text-xs px-3 py-1.5 rounded-lg transition-all duration-200 font-medium ${pagina === 'lista' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'}`}
-              >
-                Lista
-              </button>
-            </div>
-            <button
-              onClick={logout}
-              title={`Sair (${usuario.email})`}
-              className="flex items-center gap-2 text-xs text-slate-400 border border-slate-700/40 px-3 py-2 rounded-xl hover:bg-slate-800 hover:text-white transition-all"
-            >
-              {usuario.photoURL && (
-                <img src={usuario.photoURL} className="w-4 h-4 rounded-full" alt="" />
-              )}
-              Sair
-            </button>
-          </div>
-        </div>
-      </div>
+  const navItems = [
+    {
+      id: 'dashboard',
+      label: 'Dashboard',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+          <path d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z" />
+        </svg>
+      ),
+    },
+    {
+      id: 'lista',
+      label: 'Lista de OS',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+          <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
+        </svg>
+      ),
+    },
+  ]
 
-      {pagina === 'dashboard' ? <Dashboard onVerLista={() => setPagina('lista')} onToast={adicionarToast} /> : <Lista />}
+  const sw = sidebarAberta ? 'w-56' : 'w-16'
+  const ml = sidebarAberta ? 'ml-56' : 'ml-16'
+
+  return (
+    <div className="flex min-h-screen bg-[#0f1623] text-white">
+      {/* Sidebar */}
+      <aside className={`${sw} bg-[#0a1020] border-r border-white/5 fixed top-0 left-0 h-full flex flex-col z-20 transition-all duration-300 overflow-hidden`}>
+        {/* Logo + toggle */}
+        <div className="px-3 py-4 border-b border-white/5 flex items-center justify-between gap-2 min-h-[72px]">
+          {sidebarAberta && (
+            <div className="flex-1 min-w-0">
+              <img src="/logo.jpg" alt="Octek" className="h-16 w-auto rounded-xl" />
+              <p className="text-[11px] text-slate-500 mt-1 capitalize">{saudacao()}</p>
+              <p className="text-[10px] text-slate-600 capitalize leading-tight">{formatarData()}</p>
+            </div>
+          )}
+          <button
+            onClick={() => setSidebarAberta(v => !v)}
+            title={sidebarAberta ? 'Recolher menu' : 'Expandir menu'}
+            className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-white hover:bg-white/10 transition-all"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+              {sidebarAberta
+                ? <><line x1="18" y1="6" x2="6" y2="6"/><line x1="18" y1="12" x2="6" y2="12"/><line x1="18" y1="18" x2="6" y2="18"/></>
+                : <><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></>
+              }
+            </svg>
+          </button>
+        </div>
+
+        {/* Navegação */}
+        <nav className="flex-1 p-2 space-y-0.5">
+          {sidebarAberta && (
+            <p className="text-[10px] font-semibold text-slate-600 uppercase tracking-widest px-3 py-2">Menu</p>
+          )}
+          {navItems.map(item => (
+            <button
+              key={item.id}
+              onClick={() => setPagina(item.id)}
+              title={!sidebarAberta ? item.label : undefined}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+                sidebarAberta ? 'text-left' : 'justify-center'
+              } ${
+                pagina === item.id
+                  ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-900/50'
+                  : 'text-slate-400 hover:text-white hover:bg-white/[0.06]'
+              }`}
+            >
+              <span className={`shrink-0 ${pagina === item.id ? 'text-white' : 'text-slate-500'}`}>{item.icon}</span>
+              {sidebarAberta && item.label}
+            </button>
+          ))}
+        </nav>
+
+        {/* Usuário e logout */}
+        <div className="p-2 border-t border-white/5 space-y-1">
+          {sidebarAberta ? (
+            <div className="flex items-center gap-2.5 px-2 py-1.5">
+              {usuario.photoURL ? (
+                <img src={usuario.photoURL} className="w-8 h-8 rounded-full shrink-0" alt="" />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold shrink-0">
+                  {(usuario.displayName || usuario.email || '?')[0].toUpperCase()}
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-white truncate leading-tight">{usuario.displayName || 'Usuário'}</p>
+                <p className="text-[10px] text-slate-500 truncate leading-tight">{usuario.email}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-center py-1">
+              {usuario.photoURL ? (
+                <img src={usuario.photoURL} className="w-8 h-8 rounded-full" alt="" title={usuario.email} />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold" title={usuario.email}>
+                  {(usuario.displayName || usuario.email || '?')[0].toUpperCase()}
+                </div>
+              )}
+            </div>
+          )}
+          <button
+            onClick={logout}
+            title={!sidebarAberta ? 'Sair' : undefined}
+            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-slate-400 hover:text-white hover:bg-white/[0.06] transition-all duration-150 ${!sidebarAberta ? 'justify-center' : ''}`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            {sidebarAberta && 'Sair'}
+          </button>
+        </div>
+      </aside>
+
+      {/* Conteúdo principal */}
+      <main className={`${ml} flex-1 min-w-0 transition-all duration-300`}>
+        {pagina === 'dashboard' ? <Dashboard onVerLista={() => setPagina('lista')} onToast={adicionarToast} /> : <Lista />}
+      </main>
 
       <ToastContainer toasts={toasts} onRemover={removerToast} />
     </div>

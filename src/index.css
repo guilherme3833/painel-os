@@ -34,3 +34,24 @@ body {
 .animate-fade-up {
   animation: fadeUp 0.3s ease both;
 }
+
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(99, 102, 241, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 102, 241, 0.07) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-20px) scale(1.05); }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.3; }
+}
+
+.orb-1 { animation: float 8s ease-in-out infinite, pulse-slow 8s ease-in-out infinite; }
+.orb-2 { animation: float 11s ease-in-out infinite reverse, pulse-slow 11s ease-in-out infinite; }
+.orb-3 { animation: float 14s ease-in-out infinite, pulse-slow 6s ease-in-out infinite; }
