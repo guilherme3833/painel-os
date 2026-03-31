@@ -17,7 +17,7 @@ function Painel() {
   const [sidebarAberta, setSidebarAberta] = useState(true)
 
   useEffect(() => {
-    setPagina('dashboard')
+    setPagina('home')
     setToasts([])
   }, [usuario?.uid])
 

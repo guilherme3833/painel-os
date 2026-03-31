@@ -51,11 +51,19 @@ function rangeDoPreset(preset) {
 }
 
 // ── Tooltip customizado ────────────────────────────────────────────────────────
+function formatarData(iso) {
+  if (!iso) return ''
+  const [y, mm, dd] = iso.split('-')
+  const data = new Date(Number(y), Number(mm) - 1, Number(dd))
+  const diaSemana = data.toLocaleDateString('pt-BR', { weekday: 'long' })
+  return `${dd}/${mm}/${y} · ${diaSemana}`
+}
+
 function TooltipBarra({ active, payload, label }) {
   if (!active || !payload?.length) return null
   return (
     <div style={TOOLTIP_STYLE} className="px-3 py-2">
-      <p className="text-slate-400 text-[11px] mb-1">{label}</p>
+      <p className="text-slate-400 text-[11px] mb-1">{formatarData(label)}</p>
       {payload.map((p, i) => (
         <p key={i} style={{ color: p.fill || p.stroke }} className="text-xs font-medium">
           {p.name === 'total' ? 'Total' : 'Encerrados'}: {p.value}
@@ -65,18 +73,6 @@ function TooltipBarra({ active, payload, label }) {
   )
 }
 
-function TooltipPizza({ active, payload, total }) {
-  if (!active || !payload?.length) return null
-  const d = payload[0]
-  return (
-    <div style={TOOLTIP_STYLE} className="px-3 py-2">
-      <p className="text-slate-200 text-xs font-medium">{d.name}</p>
-      <p style={{ color: d.payload.fill }} className="text-xs">
-        {d.value} — {Math.round(d.value / total * 100)}%
-      </p>
-    </div>
-  )
-}
 
 // ── Gráfico de barras ──────────────────────────────────────────────────────────
 function GraficoBarras({ dados }) {
@@ -85,7 +81,11 @@ function GraficoBarras({ dados }) {
   )
 
   const step = Math.ceil(dados.length / 8)
-  const tickFormatter = (v, i) => i % step === 0 ? (v?.slice(5) ?? '') : ''
+  const tickFormatter = (v, i) => {
+    if (i % step !== 0 || !v) return ''
+    const [, mm, dd] = v.split('-')
+    return `${dd}/${mm}`
+  }
 
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -145,7 +145,6 @@ function GraficoRosca({ dados, campo }) {
               onMouseLeave={() => setAtivo(null)}
               strokeWidth={0}
             />
-            <Tooltip content={<TooltipPizza total={total} />} />
           </PieChart>
         </ResponsiveContainer>
         {/* Texto central */}
@@ -205,7 +204,7 @@ function Skeleton({ h = 'h-40' }) {
 
 // ── Página principal ───────────────────────────────────────────────────────────
 export default function Protocolos() {
-  const [preset, setPreset] = useState('30d')
+  const [preset, setPreset] = useState('hoje')
   const [customInicio, setCustomInicio] = useState(diasAtras(29))
   const [customFim, setCustomFim]       = useState(hoje())
   const [refreshInterval, setRefreshInterval] = useState(0)
@@ -350,7 +349,7 @@ export default function Protocolos() {
       {/* Rosca: Status + Canal + Tipo */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { titulo: 'Por status', key: 'por_status', campo: 'status' },
+          { titulo: 'Por atendente', key: 'por_atendente', campo: 'atendente' },
           { titulo: 'Por canal',  key: 'por_canal',  campo: 'canal'  },
           { titulo: 'Por tipo',   key: 'por_tipo',   campo: 'tipo'   },
         ].map(({ titulo, key, campo }) => (
