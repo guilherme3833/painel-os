@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import ReactECharts from 'echarts-for-react'
 import { buscarConfigFaltaAgua, salvarConfigFaltaAgua } from '../firebase'
+import { useAuth } from '../contexts/AuthContext'
 
 const API_DIA   = 'https://automacao.octek.com.br/webhook/chamados/dia'
 const API_TIPOS = 'https://automacao.octek.com.br/webhook/chamados/tipos'
@@ -257,6 +258,7 @@ function ModalConfig({ onFechar, onSalvar }) {
 
 // ── Página principal ───────────────────────────────────────────────────────────
 export default function ProtocolosDia() {
+  const { temPermissao } = useAuth()
   const [preset, setPreset] = useState('hoje')
   const [refreshInterval, setRefreshInterval] = useState(0)
   const [dados, setDados]           = useState(null)
@@ -330,13 +332,13 @@ export default function ProtocolosDia() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-semibold text-white">Falta de água</h1>
-            <button onClick={() => setConfigAberta(true)} title="Configurar tipos"
+            {temPermissao('protocolos_dia', 'configurar') && <button onClick={() => setConfigAberta(true)} title="Configurar tipos"
               className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-500 hover:text-white hover:bg-white/10 transition-all">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
                 <circle cx="12" cy="12" r="3"/>
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
               </svg>
-            </button>
+            </button>}
           </div>
           <p className="text-sm text-slate-500 mt-0.5 flex items-center gap-2">
             {ultimaAtualizacao
@@ -395,7 +397,7 @@ export default function ProtocolosDia() {
       </div>
 
       {/* Gráfico + Bairros lado a lado */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-w-0 overflow-hidden">
 
         {/* Barras por dia */}
         <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-5">
@@ -419,14 +421,14 @@ export default function ProtocolosDia() {
         <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-5 min-w-0">
           <p className="text-sm font-semibold text-white mb-4">Por bairro</p>
           {carregando ? <Skeleton h="h-52" /> : (
-            <div className="flex flex-col gap-2 overflow-y-auto" style={{ maxHeight: '208px' }}>
+            <div className="flex flex-col gap-2 overflow-y-auto pr-3" style={{ maxHeight: '208px' }}>
               {dados?.por_bairro?.length ? dados.por_bairro.map((d, i) => (
-                <div key={i} className="flex items-center gap-3 w-full min-w-0">
-                  <span className="text-[10px] text-slate-600 shrink-0 w-4 text-right">{i + 1}</span>
-                  <div className="flex-1 min-w-0 w-0">
+                <div key={i} className="grid gap-1" style={{ gridTemplateColumns: '1rem 1fr' }}>
+                  <span className="text-[10px] text-slate-600 text-right pt-0.5">{i + 1}</span>
+                  <div className="overflow-hidden">
                     <div className="flex items-center justify-between mb-0.5">
-                      <span className="text-xs text-slate-300 truncate block min-w-0 flex-1">{d.bairro}</span>
-                      <span className="text-xs font-medium text-slate-400 shrink-0 ml-2">{d.total}</span>
+                      <span className="text-xs text-slate-300 truncate">{d.bairro}</span>
+                      <span className="text-xs font-medium text-slate-400 ml-2 shrink-0">{d.total}</span>
                     </div>
                     <div className="h-1 rounded-full bg-white/[0.06] overflow-hidden">
                       <div

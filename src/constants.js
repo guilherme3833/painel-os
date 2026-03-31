@@ -57,6 +57,7 @@ export const PAGINAS_CONFIG = [
     descricao: 'Resumo diário de chamados por bairro',
     acoes: [
       { id: 'ver', label: 'Visualizar' },
+      { id: 'configurar', label: 'Configurar tipos' },
     ],
   },
   {
