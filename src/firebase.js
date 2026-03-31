@@ -20,7 +20,7 @@ import {
   getDocs,
   serverTimestamp,
 } from 'firebase/firestore'
-import { ROLE_ADMIN_ID, PERMISSOES_ADMIN } from './constants'
+import { ROLE_ADMIN_ID, PERMISSOES_ADMIN, PAGINAS_CONFIG } from './constants'
 
 const firebaseConfig = {
   apiKey: "AIzaSyAG46e5T0rZvNbD0F1aTiNUxsLLY4nVnxM",
@@ -64,39 +64,34 @@ export function logout() {
 // ── Usuários ──────────────────────────────────────────────────────────────────
 
 const ROLES_PADRAO = {
-  visualizador: {
-    nome: 'Visualizador',
-    cor: 'slate',
-    permissoes: {
-      dashboard: { ver: true },
-      lista: { ver: false },
-      usuarios: { ver: false },
-    },
-  },
-  tecnico: {
-    nome: 'Técnico',
-    cor: 'indigo',
-    permissoes: {
-      dashboard: { ver: true },
-      lista: { ver: true },
-      usuarios: { ver: false },
-    },
-  },
+  visualizador: { nome: 'Visualizador', cor: 'slate' },
+  tecnico:      { nome: 'Técnico',      cor: 'indigo' },
+}
+
+function permissoesVazias() {
+  return Object.fromEntries(
+    PAGINAS_CONFIG.map(p => [p.id, Object.fromEntries(p.acoes.map(a => [a.id, false]))])
+  )
 }
 
 async function garantirRolePadrao(roleId) {
   if (roleId === ROLE_ADMIN_ID) return PERMISSOES_ADMIN
+  const base = permissoesVazias()
   const roleRef = doc(db, 'roles', roleId)
   const roleSnap = await getDoc(roleRef)
-  if (roleSnap.exists()) return roleSnap.data().permissoes
-  // Cria o perfil padrão se não existir (pode falhar se não-admin — ok, ainda retorna)
+  if (roleSnap.exists()) {
+    // Merge: base tudo-false + o que o admin concedeu no Firestore
+    const salvo = roleSnap.data().permissoes || {}
+    return Object.fromEntries(
+      Object.keys(base).map(pagina => [pagina, { ...base[pagina], ...(salvo[pagina] || {}) }])
+    )
+  }
+  // Cria o perfil sem nenhuma permissão
   const padrao = ROLES_PADRAO[roleId]
   if (padrao) {
-    try { await setDoc(roleRef, padrao) } catch {}
-    return padrao.permissoes
+    try { await setDoc(roleRef, { ...padrao, permissoes: base }) } catch {}
   }
-  // Perfil customizado sem documento — dá acesso ao dashboard por segurança
-  return { dashboard: { ver: true }, lista: { ver: false }, usuarios: { ver: false } }
+  return base
 }
 
 export async function buscarOuCriarUsuario(user) {
@@ -108,7 +103,8 @@ export async function buscarOuCriarUsuario(user) {
     try {
       const conviteSnap = await getDoc(doc(db, 'convites', user.email.toLowerCase()))
       if (conviteSnap.exists() && !conviteSnap.data().usado) {
-        roleId = conviteSnap.data().roleId || 'visualizador'
+        const roleDoConvite = conviteSnap.data().roleId || 'visualizador'
+        roleId = roleDoConvite === ROLE_ADMIN_ID ? 'visualizador' : roleDoConvite
         await updateDoc(doc(db, 'convites', user.email.toLowerCase()), { usado: true })
       }
     } catch { }
