@@ -416,16 +416,16 @@ export default function ProtocolosDia() {
         </div>
 
         {/* Bairros */}
-        <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-5 overflow-hidden">
+        <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-5 min-w-0">
           <p className="text-sm font-semibold text-white mb-4">Por bairro</p>
           {carregando ? <Skeleton h="h-52" /> : (
-            <div className="flex flex-col gap-2 overflow-y-auto overflow-x-hidden" style={{ maxHeight: '208px' }}>
+            <div className="flex flex-col gap-2 overflow-y-auto" style={{ maxHeight: '208px' }}>
               {dados?.por_bairro?.length ? dados.por_bairro.map((d, i) => (
-                <div key={i} className="flex items-center gap-3 min-w-0">
+                <div key={i} className="flex items-center gap-3 w-full min-w-0">
                   <span className="text-[10px] text-slate-600 shrink-0 w-4 text-right">{i + 1}</span>
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 w-0">
                     <div className="flex items-center justify-between mb-0.5">
-                      <span className="text-xs text-slate-300 truncate">{d.bairro}</span>
+                      <span className="text-xs text-slate-300 truncate block min-w-0 flex-1">{d.bairro}</span>
                       <span className="text-xs font-medium text-slate-400 shrink-0 ml-2">{d.total}</span>
                     </div>
                     <div className="h-1 rounded-full bg-white/[0.06] overflow-hidden">
