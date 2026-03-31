@@ -260,7 +260,7 @@ function ModalConfig({ onFechar, onSalvar }) {
 export default function ProtocolosDia() {
   const { temPermissao } = useAuth()
   const [preset, setPreset] = useState('hoje')
-  const [refreshInterval, setRefreshInterval] = useState(0)
+  const [refreshInterval, setRefreshInterval] = useState(300)
   const [dados, setDados]           = useState(null)
   const [carregando, setCarregando] = useState(true)
   const [atualizando, setAtualizando] = useState(false)
@@ -365,12 +365,16 @@ export default function ProtocolosDia() {
               className={`w-3.5 h-3.5 text-slate-500 ml-1 ${atualizando ? 'animate-spin' : ''}`}>
               <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
             </svg>
-            <select value={refreshInterval} onChange={e => setRefreshInterval(Number(e.target.value))}
-              className="bg-transparent text-xs text-slate-400 focus:outline-none pr-1">
-              {REFRESH_OPTIONS.map(r => (
-                <option key={r.id} value={r.id} className="bg-[#111827]">{r.label}</option>
-              ))}
-            </select>
+            {temPermissao('protocolos_dia', 'configurar') ? (
+              <select value={refreshInterval} onChange={e => setRefreshInterval(Number(e.target.value))}
+                className="bg-transparent text-xs text-slate-400 focus:outline-none pr-1">
+                {REFRESH_OPTIONS.map(r => (
+                  <option key={r.id} value={r.id} className="bg-[#111827]">{r.label}</option>
+                ))}
+              </select>
+            ) : (
+              <span className="text-xs text-slate-400 px-1">5 min</span>
+            )}
           </div>
 
           <button onClick={buscar} disabled={carregando}
