@@ -1,0 +1,217 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "path": "chamados/resumo",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-1800, 520],
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "Webhook",
+      "webhookId": "c1d2e3f4-a5b6-7890-1234-567890abcdef"
+    },
+    {
+      "parameters": {
+        "jsCode": "const q = $input.first().json.query\nreturn [{ json: { inicio: q.inicio, fim: q.fim } }]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-1560, 520],
+      "id": "aa000001-0000-0000-0000-000000000001",
+      "name": "Extrair Params"
+    },
+
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  COUNT(*) AS total,\n  SUM(encerrado = 's') AS encerrados,\n  SUM(encerrado = 'n') AS abertos\nFROM chamados\nWHERE data BETWEEN '{{ $json.inicio }}' AND '{{ $json.fim }}'",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [-1280, 160],
+      "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "name": "MySQL Totais",
+      "credentials": { "mySql": { "id": "5pBRjyVxIwR5AI6n", "name": "MySQL Call Center" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all().map(i => i.json)\nreturn [{ json: { _key: 'totais', data: rows } }]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-1040, 160],
+      "id": "wrap-01-0000-0000-0000-000000000001",
+      "name": "Wrap Totais"
+    },
+
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  data AS dia,\n  COUNT(*) AS total,\n  SUM(encerrado = 's') AS encerrados\nFROM chamados\nWHERE data BETWEEN '{{ $json.inicio }}' AND '{{ $json.fim }}'\nGROUP BY data\nORDER BY data ASC",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [-1280, 360],
+      "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+      "name": "MySQL Por Dia",
+      "credentials": { "mySql": { "id": "5pBRjyVxIwR5AI6n", "name": "MySQL Call Center" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all().map(i => i.json)\nreturn [{ json: { _key: 'por_dia', data: rows } }]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-1040, 360],
+      "id": "wrap-02-0000-0000-0000-000000000002",
+      "name": "Wrap Por Dia"
+    },
+
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  s.nome_status AS status,\n  COUNT(*) AS total\nFROM chamados c\nLEFT JOIN status s ON c.id_status = s.id_status\nWHERE c.data BETWEEN '{{ $json.inicio }}' AND '{{ $json.fim }}'\nGROUP BY s.nome_status\nORDER BY total DESC",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [-1280, 520],
+      "id": "d4e5f6a7-b8c9-0123-defa-234567890123",
+      "name": "MySQL Por Status",
+      "credentials": { "mySql": { "id": "5pBRjyVxIwR5AI6n", "name": "MySQL Call Center" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all().map(i => i.json)\nreturn [{ json: { _key: 'por_status', data: rows } }]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-1040, 520],
+      "id": "wrap-03-0000-0000-0000-000000000003",
+      "name": "Wrap Por Status"
+    },
+
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  COALESCE(canal_comunicacao, 'Não informado') AS canal,\n  COUNT(*) AS total\nFROM chamados\nWHERE data BETWEEN '{{ $json.inicio }}' AND '{{ $json.fim }}'\nGROUP BY canal_comunicacao\nORDER BY total DESC",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [-1280, 680],
+      "id": "e5f6a7b8-c9d0-1234-efab-345678901234",
+      "name": "MySQL Por Canal",
+      "credentials": { "mySql": { "id": "5pBRjyVxIwR5AI6n", "name": "MySQL Call Center" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all().map(i => i.json)\nreturn [{ json: { _key: 'por_canal', data: rows } }]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-1040, 680],
+      "id": "wrap-04-0000-0000-0000-000000000004",
+      "name": "Wrap Por Canal"
+    },
+
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  t.nome_tipo AS tipo,\n  COUNT(*) AS total\nFROM chamados c\nLEFT JOIN tipos t ON c.id_tipo = t.id_tipo\nWHERE c.data BETWEEN '{{ $json.inicio }}' AND '{{ $json.fim }}'\nGROUP BY t.nome_tipo\nORDER BY total DESC",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [-1280, 880],
+      "id": "f1a2b3c4-d5e6-7890-abcd-ef1234567891",
+      "name": "MySQL Por Tipo",
+      "credentials": { "mySql": { "id": "5pBRjyVxIwR5AI6n", "name": "MySQL Call Center" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all().map(i => i.json)\nreturn [{ json: { _key: 'por_tipo', data: rows } }]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-1040, 880],
+      "id": "wrap-05-0000-0000-0000-000000000005",
+      "name": "Wrap Por Tipo"
+    },
+
+    {
+      "parameters": {
+        "mode": "append",
+        "numberInputs": 5
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [-760, 520],
+      "id": "merge-0001-0000-0000-000000000001",
+      "name": "Merge"
+    },
+
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all().map(i => i.json)\n\nfunction get(key) {\n  return items.find(i => i._key === key)?.data || []\n}\n\nconst totaisRow = get('totais')[0] || { total: 0, encerrados: 0, abertos: 0 }\n\nconst resultado = {\n  totais: {\n    total: Number(totaisRow.total),\n    encerrados: Number(totaisRow.encerrados),\n    abertos: Number(totaisRow.abertos)\n  },\n  por_dia: get('por_dia').map(d => ({ dia: d.dia, total: Number(d.total), encerrados: Number(d.encerrados) })),\n  por_status: get('por_status').map(d => ({ status: d.status, total: Number(d.total) })),\n  por_canal: get('por_canal').map(d => ({ canal: d.canal, total: Number(d.total) })),\n  por_tipo: get('por_tipo').map(d => ({ tipo: d.tipo, total: Number(d.total) }))\n}\n\nreturn [{ json: { body: JSON.stringify(resultado) } }]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-520, 520],
+      "id": "f6a7b8c9-d0e1-2345-fabc-456789012345",
+      "name": "Montar Resposta"
+    },
+
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.body }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              { "name": "Content-Type", "value": "application/json; charset=utf-8" },
+              { "name": "Access-Control-Allow-Origin", "value": "*" }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [-280, 520],
+      "id": "a7b8c9d0-e1f2-3456-abcd-567890123456",
+      "name": "Responder"
+    }
+  ],
+  "connections": {
+    "Webhook": { "main": [[{ "node": "Extrair Params", "type": "main", "index": 0 }]] },
+    "Extrair Params": { "main": [[
+      { "node": "MySQL Totais",     "type": "main", "index": 0 },
+      { "node": "MySQL Por Dia",    "type": "main", "index": 0 },
+      { "node": "MySQL Por Status", "type": "main", "index": 0 },
+      { "node": "MySQL Por Canal",  "type": "main", "index": 0 },
+      { "node": "MySQL Por Tipo",   "type": "main", "index": 0 }
+    ]] },
+    "MySQL Totais":     { "main": [[{ "node": "Wrap Totais",      "type": "main", "index": 0 }]] },
+    "MySQL Por Dia":    { "main": [[{ "node": "Wrap Por Dia",     "type": "main", "index": 0 }]] },
+    "MySQL Por Status": { "main": [[{ "node": "Wrap Por Status",  "type": "main", "index": 0 }]] },
+    "MySQL Por Canal":  { "main": [[{ "node": "Wrap Por Canal",   "type": "main", "index": 0 }]] },
+    "MySQL Por Tipo":   { "main": [[{ "node": "Wrap Por Tipo",    "type": "main", "index": 0 }]] },
+    "Wrap Totais":      { "main": [[{ "node": "Merge", "type": "main", "index": 0 }]] },
+    "Wrap Por Dia":     { "main": [[{ "node": "Merge", "type": "main", "index": 1 }]] },
+    "Wrap Por Status":  { "main": [[{ "node": "Merge", "type": "main", "index": 2 }]] },
+    "Wrap Por Canal":   { "main": [[{ "node": "Merge", "type": "main", "index": 3 }]] },
+    "Wrap Por Tipo":    { "main": [[{ "node": "Merge", "type": "main", "index": 4 }]] },
+    "Merge":            { "main": [[{ "node": "Montar Resposta",  "type": "main", "index": 0 }]] },
+    "Montar Resposta":  { "main": [[{ "node": "Responder",        "type": "main", "index": 0 }]] }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ddde3ba2d4f38e1765392468f917b5df6604c73bfaf362e501797732bbfb53bc"
+  }
+}

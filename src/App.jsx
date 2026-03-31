@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Sidebar from './components/Sidebar'
 import Toast from './components/Toast'
@@ -6,12 +6,19 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Lista from './pages/Lista'
 import Usuarios from './pages/Usuarios'
+import Perfil from './pages/Perfil'
+import Protocolos from './pages/Protocolos'
 
 function Painel() {
   const { usuario } = useAuth()
   const [pagina, setPagina] = useState('dashboard')
   const [toasts, setToasts] = useState([])
   const [sidebarAberta, setSidebarAberta] = useState(true)
+
+  useEffect(() => {
+    setPagina('dashboard')
+    setToasts([])
+  }, [usuario?.uid])
 
   if (usuario === undefined) return (
     <div className="min-h-screen bg-[#0f1623] flex items-center justify-center">
@@ -36,7 +43,9 @@ function Painel() {
   const paginas = {
     dashboard: <Dashboard onVerLista={() => setPagina('lista')} onToast={adicionarToast} />,
     lista: <Lista />,
+    protocolos: <Protocolos />,
     usuarios: <Usuarios />,
+    perfil: <Perfil />,
   }
 
   return (

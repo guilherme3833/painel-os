@@ -1,6 +1,6 @@
 import { logout } from '../firebase'
 import { useAuth } from '../contexts/AuthContext'
-import { PERMISSOES, ROLES, saudacao, formatarData } from '../constants'
+import { saudacao, formatarData } from '../constants'
 
 const ITENS_NAV = [
   {
@@ -24,6 +24,18 @@ const ITENS_NAV = [
     ),
   },
   {
+    id: 'protocolos',
+    label: 'Protocolos',
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+        <line x1="10" y1="9" x2="8" y2="9"/>
+      </svg>
+    ),
+  },
+  {
     id: 'usuarios',
     label: 'Usuários',
     icon: (
@@ -37,10 +49,9 @@ const ITENS_NAV = [
   },
 ]
 
-export default function Sidebar({ pagina, setPagina, aberta, setAberta }) {
-  const { usuario, role } = useAuth()
-  const paginasPermitidas = PERMISSOES[role] || []
-  const itensVisiveis = ITENS_NAV.filter(item => paginasPermitidas.includes(item.id))
+export default function Sidebar({ pagina, setPagina, aberta, setAberta, }) {
+  const { usuario, role, podeVer } = useAuth()
+  const itensVisiveis = ITENS_NAV.filter(item => podeVer(item.id))
 
   const sw = aberta ? 'w-56' : 'w-16'
 
@@ -96,35 +107,26 @@ export default function Sidebar({ pagina, setPagina, aberta, setAberta }) {
 
       {/* Usuário e logout */}
       <div className="p-2 border-t border-white/5 space-y-1">
-        {aberta ? (
-          <div className="flex items-center gap-2.5 px-2 py-1.5">
-            {usuario.photoURL ? (
-              <img src={usuario.photoURL} className="w-8 h-8 rounded-full shrink-0" alt="" />
-            ) : (
-              <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold shrink-0">
-                {(usuario.displayName || usuario.email || '?')[0].toUpperCase()}
-              </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-medium text-white truncate leading-tight">{usuario.displayName || 'Usuário'}</p>
-              <p className="text-[10px] truncate leading-tight">
-                <span className={`px-1.5 py-0.5 rounded text-[9px] font-semibold border ${ROLES[role]?.cor || ''}`}>
-                  {ROLES[role]?.label || role}
-                </span>
-              </p>
+        {/* Botão de perfil */}
+        <button
+          onClick={() => setPagina('perfil')}
+          title={!aberta ? 'Meu perfil' : undefined}
+          className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-xl hover:bg-white/[0.06] transition-all cursor-pointer ${pagina === 'perfil' ? 'bg-white/[0.06]' : ''} ${!aberta ? 'justify-center' : ''}`}
+        >
+          {usuario.photoURL ? (
+            <img src={usuario.photoURL} className="w-8 h-8 rounded-full shrink-0" alt="" referrerPolicy="no-referrer" />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold shrink-0">
+              {(usuario.displayName || usuario.email || '?')[0].toUpperCase()}
             </div>
-          </div>
-        ) : (
-          <div className="flex justify-center py-1">
-            {usuario.photoURL ? (
-              <img src={usuario.photoURL} className="w-8 h-8 rounded-full" alt="" title={usuario.email} />
-            ) : (
-              <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold" title={usuario.email}>
-                {(usuario.displayName || usuario.email || '?')[0].toUpperCase()}
-              </div>
-            )}
-          </div>
-        )}
+          )}
+          {aberta && (
+            <div className="min-w-0 flex-1 text-left">
+              <p className="text-xs font-medium text-white truncate leading-tight">{usuario.displayName || 'Usuário'}</p>
+              <p className="text-[10px] text-slate-500 truncate leading-tight capitalize">{role === 'admin' ? 'Administrador' : role}</p>
+            </div>
+          )}
+        </button>
         <button
           onClick={logout}
           title={!aberta ? 'Sair' : undefined}

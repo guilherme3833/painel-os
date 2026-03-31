@@ -22,17 +22,68 @@ export const PIZZA_CORES = [
   '#f59e0b', '#f43f5e', '#3b82f6', '#14b8a6', '#a855f7', '#ec4899',
 ]
 
-export const ROLES = {
-  admin: { label: 'Administrador', cor: 'text-rose-400 bg-rose-500/10 border-rose-500/20' },
-  tecnico: { label: 'Técnico', cor: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' },
-  visualizador: { label: 'Visualizador', cor: 'text-slate-400 bg-white/5 border-white/10' },
-}
+// Perfil especial fixo — sempre tem acesso total
+export const ROLE_ADMIN_ID = 'admin'
 
-// Quais páginas cada role pode acessar
-export const PERMISSOES = {
-  admin: ['dashboard', 'lista', 'usuarios'],
-  tecnico: ['dashboard', 'lista'],
-  visualizador: ['dashboard'],
+// Definição de todas as telas e ações disponíveis no sistema
+export const PAGINAS_CONFIG = [
+  {
+    id: 'dashboard',
+    label: 'Dashboard',
+    descricao: 'Visão geral e gráficos de OS',
+    acoes: [
+      { id: 'ver', label: 'Visualizar' },
+    ],
+  },
+  {
+    id: 'lista',
+    label: 'Lista de OS',
+    descricao: 'Listagem completa das ordens de serviço',
+    acoes: [
+      { id: 'ver', label: 'Visualizar' },
+    ],
+  },
+  {
+    id: 'protocolos',
+    label: 'Protocolos',
+    descricao: 'Dashboard de chamados e protocolos',
+    acoes: [
+      { id: 'ver', label: 'Visualizar' },
+    ],
+  },
+  {
+    id: 'usuarios',
+    label: 'Usuários',
+    descricao: 'Gerenciar usuários e perfis de acesso',
+    acoes: [
+      { id: 'ver', label: 'Visualizar' },
+      { id: 'editar', label: 'Editar (roles, perfis, convites)' },
+    ],
+  },
+]
+
+// Permissões padrão para novos perfis (tudo bloqueado)
+export const PERMISSOES_PADRAO = Object.fromEntries(
+  PAGINAS_CONFIG.map(p => [p.id, Object.fromEntries(p.acoes.map(a => [a.id, false]))])
+)
+
+// Permissões completas (admin)
+export const PERMISSOES_ADMIN = Object.fromEntries(
+  PAGINAS_CONFIG.map(p => [p.id, Object.fromEntries(p.acoes.map(a => [a.id, true]))])
+)
+
+export const COR_OPTIONS = [
+  { id: 'indigo', label: 'Índigo', cls: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' },
+  { id: 'violet', label: 'Violeta', cls: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
+  { id: 'emerald', label: 'Verde', cls: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+  { id: 'amber', label: 'Âmbar', cls: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+  { id: 'rose', label: 'Rosa', cls: 'text-rose-400 bg-rose-500/10 border-rose-500/20' },
+  { id: 'cyan', label: 'Ciano', cls: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' },
+  { id: 'slate', label: 'Cinza', cls: 'text-slate-400 bg-white/5 border-white/10' },
+]
+
+export function corDoPerfil(cor) {
+  return COR_OPTIONS.find(c => c.id === cor)?.cls || COR_OPTIONS[6].cls
 }
 
 export function hashString(str) {
