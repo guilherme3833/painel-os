@@ -52,6 +52,14 @@ export const PAGINAS_CONFIG = [
     ],
   },
   {
+    id: 'protocolos_dia',
+    label: 'Chamados do dia',
+    descricao: 'Resumo diário de chamados por bairro',
+    acoes: [
+      { id: 'ver', label: 'Visualizar' },
+    ],
+  },
+  {
     id: 'usuarios',
     label: 'Usuários',
     descricao: 'Gerenciar usuários e perfis de acesso',

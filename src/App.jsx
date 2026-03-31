@@ -9,6 +9,7 @@ import Lista from './pages/Lista'
 import Usuarios from './pages/Usuarios'
 import Perfil from './pages/Perfil'
 import Protocolos from './pages/Protocolos'
+import ProtocolosDia from './pages/ProtocolosDia'
 
 function Painel() {
   const { usuario } = useAuth()
@@ -46,6 +47,7 @@ function Painel() {
     dashboard: <Dashboard onVerLista={() => setPagina('lista')} onToast={adicionarToast} />,
     lista: <Lista />,
     protocolos: <Protocolos />,
+    protocolos_dia: <ProtocolosDia />,
     usuarios: <Usuarios />,
     perfil: <Perfil />,
   }

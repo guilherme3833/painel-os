@@ -1,8 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import {
-  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  PieChart, Pie,
-} from 'recharts'
+import ReactECharts from 'echarts-for-react'
 
 const API = 'https://automacao.octek.com.br/webhook/chamados/resumo'
 
@@ -22,23 +19,14 @@ const REFRESH_OPTIONS = [
   { id: 600, label: '10 min' },
 ]
 
-const CORES = ['#6366f1','#8b5cf6','#06b6d4','#10b981','#f59e0b','#f43f5e','#3b82f6','#14b8a6','#a855f7','#ec4899']
-
-const TOOLTIP_STYLE = {
-  backgroundColor: '#141c2e',
-  border: '1px solid rgba(255,255,255,0.08)',
-  borderRadius: '10px',
-  color: '#e2e8f0',
-  fontSize: '12px',
-  boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-}
+const CORES = ['#6366f1','#f43f5e','#10b981','#f59e0b','#06b6d4','#f97316','#84cc16','#ec4899','#8b5cf6','#14b8a6']
 
 function dataLocal(d = new Date()) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
-function hoje()      { return dataLocal() }
-function diasAtras(n){ const d = new Date(); d.setDate(d.getDate() - n); return dataLocal(d) }
-function inicioMes() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01` }
+function hoje()       { return dataLocal() }
+function diasAtras(n) { const d = new Date(); d.setDate(d.getDate() - n); return dataLocal(d) }
+function inicioMes()  { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01` }
 
 function rangeDoPreset(preset) {
   switch (preset) {
@@ -50,8 +38,7 @@ function rangeDoPreset(preset) {
   }
 }
 
-// ── Tooltip customizado ────────────────────────────────────────────────────────
-function formatarData(iso) {
+function formatarDataTooltip(iso) {
   if (!iso) return ''
   const [y, mm, dd] = iso.split('-')
   const data = new Date(Number(y), Number(mm) - 1, Number(dd))
@@ -59,114 +46,176 @@ function formatarData(iso) {
   return `${dd}/${mm}/${y} · ${diaSemana}`
 }
 
-function TooltipBarra({ active, payload, label }) {
-  if (!active || !payload?.length) return null
-  return (
-    <div style={TOOLTIP_STYLE} className="px-3 py-2">
-      <p className="text-slate-400 text-[11px] mb-1">{formatarData(label)}</p>
-      {payload.map((p, i) => (
-        <p key={i} style={{ color: p.fill || p.stroke }} className="text-xs font-medium">
-          {p.name === 'total' ? 'Total' : 'Encerrados'}: {p.value}
-        </p>
-      ))}
-    </div>
-  )
+function formatarDataEixo(iso) {
+  if (!iso) return ''
+  const [, mm, dd] = iso.split('-')
+  return `${dd}/${mm}`
 }
 
-
-// ── Gráfico de barras ──────────────────────────────────────────────────────────
+// ── Gráfico de barras 3D (cilindros) ──────────────────────────────────────────
 function GraficoBarras({ dados }) {
   if (!dados?.length) return (
     <div className="flex items-center justify-center h-full text-slate-600 text-sm">Sem dados no período</div>
   )
 
   const step = Math.ceil(dados.length / 8)
-  const tickFormatter = (v, i) => {
-    if (i % step !== 0 || !v) return ''
-    const [, mm, dd] = v.split('-')
-    return `${dd}/${mm}`
+
+  const option = {
+    backgroundColor: 'transparent',
+    grid: { top: 16, right: 12, bottom: 28, left: 36, containLabel: false },
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: '#141c2e',
+      borderColor: 'rgba(255,255,255,0.08)',
+      borderWidth: 1,
+      textStyle: { color: '#e2e8f0', fontSize: 12 },
+      formatter: (params) => {
+        const label = formatarDataTooltip(params[0]?.axisValue)
+        const linhas = params.map(p =>
+          `<span style="color:${p.color}">●</span> ${p.seriesName}: <b>${p.value}</b>`
+        ).join('<br/>')
+        return `<div style="font-size:11px;color:#94a3b8;margin-bottom:4px">${label}</div>${linhas}`
+      },
+    },
+    xAxis: {
+      type: 'category',
+      data: dados.map(d => d.dia),
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: {
+        color: 'rgba(255,255,255,0.3)',
+        fontSize: 10,
+        formatter: (v, i) => i % step === 0 ? formatarDataEixo(v) : '',
+      },
+      splitLine: { show: false },
+    },
+    yAxis: {
+      type: 'value',
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { color: 'rgba(255,255,255,0.3)', fontSize: 10 },
+      splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } },
+    },
+    series: [
+      {
+        name: 'Total',
+        type: 'bar',
+        data: dados.map(d => d.total),
+        barMaxWidth: 18,
+        itemStyle: {
+          color: {
+            type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+            colorStops: [
+              { offset: 0, color: 'rgba(99,102,241,0.7)' },
+              { offset: 1, color: 'rgba(99,102,241,0.1)' },
+            ],
+          },
+          borderRadius: [4, 4, 0, 0],
+        },
+        emphasis: {
+          itemStyle: {
+            color: {
+              type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+              colorStops: [
+                { offset: 0, color: 'rgba(99,102,241,0.9)' },
+                { offset: 1, color: 'rgba(99,102,241,0.2)' },
+              ],
+            },
+          },
+        },
+      },
+      {
+        name: 'Encerrados',
+        type: 'bar',
+        data: dados.map(d => d.encerrados),
+        barMaxWidth: 18,
+        itemStyle: {
+          color: {
+            type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+            colorStops: [
+              { offset: 0, color: '#818cf8' },
+              { offset: 1, color: '#4f46e5' },
+            ],
+          },
+          borderRadius: [4, 4, 0, 0],
+        },
+        emphasis: {
+          itemStyle: {
+          },
+        },
+      },
+    ],
   }
 
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={dados} margin={{ top: 4, right: 8, left: -24, bottom: 0 }} barCategoryGap="30%">
-        <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.05)" />
-        <XAxis
-          dataKey="dia"
-          tickFormatter={tickFormatter}
-          tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }}
-          axisLine={false} tickLine={false}
-        />
-        <YAxis
-          tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }}
-          axisLine={false} tickLine={false} allowDecimals={false}
-        />
-        <Tooltip content={<TooltipBarra />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
-        <Bar dataKey="total"      name="total"      fill="rgba(99,102,241,0.25)" radius={[3,3,0,0]} />
-        <Bar dataKey="encerrados" name="encerrados" fill="#6366f1"               radius={[3,3,0,0]} />
-      </BarChart>
-    </ResponsiveContainer>
-  )
+  return <ReactECharts option={option} style={{ height: '100%', width: '100%' }} opts={{ renderer: 'canvas' }} />
 }
 
-// ── Gráfico de rosca ───────────────────────────────────────────────────────────
+// ── Gráfico de rosca 3D ────────────────────────────────────────────────────────
 function GraficoRosca({ dados, campo }) {
-  const [ativo, setAtivo] = useState(null)
   if (!dados?.length) return (
     <div className="flex items-center justify-center h-full text-slate-600 text-sm">Sem dados no período</div>
   )
 
   const total = dados.reduce((s, d) => s + Number(d.total), 0)
-  const nomeAtivo = ativo !== null ? dados[ativo]?.[campo] : null
-  const valorAtivo = ativo !== null ? dados[ativo]?.total : null
 
-  // v3: fill vai dentro do data array
-  const dataComCores = dados.map((d, i) => ({
-    ...d,
-    fill: ativo === null || ativo === i
-      ? CORES[i % CORES.length]
-      : CORES[i % CORES.length] + '55',
+  const seriesData = dados.map((d, i) => ({
+    name: d[campo],
+    value: Number(d.total),
+    itemStyle: {
+      color: CORES[i % CORES.length],
+    },
   }))
 
-  return (
-    <div className="flex items-center gap-4 h-full">
-      {/* Donut */}
-      <div className="relative shrink-0" style={{ width: 130, height: 130 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={dataComCores}
-              dataKey="total"
-              nameKey={campo}
-              innerRadius={38}
-              outerRadius={56}
-              paddingAngle={dados.length > 1 ? 2 : 0}
-              onMouseEnter={(_, i) => setAtivo(i)}
-              onMouseLeave={() => setAtivo(null)}
-              strokeWidth={0}
-            />
-          </PieChart>
-        </ResponsiveContainer>
-        {/* Texto central */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-lg font-bold text-white leading-none">
-            {ativo !== null ? valorAtivo : total}
-          </span>
-          <span className="text-[10px] text-slate-500 mt-0.5 truncate max-w-[70px] text-center">
-            {ativo !== null ? nomeAtivo?.split(' ')[0] : 'total'}
-          </span>
-        </div>
-      </div>
+  const option = {
+    backgroundColor: 'transparent',
+    tooltip: {
+      trigger: 'item',
+      backgroundColor: '#141c2e',
+      borderColor: 'rgba(255,255,255,0.08)',
+      borderWidth: 1,
+      textStyle: { color: '#e2e8f0', fontSize: 12 },
+      formatter: (p) =>
+        `<b style="color:${p.color}">${p.name}</b><br/>` +
+        `${p.value} &nbsp;<span style="color:#64748b">${p.percent.toFixed(1)}%</span>`,
+    },
+    series: [
+      {
+        type: 'pie',
+        radius: ['42%', '68%'],
+        center: ['50%', '50%'],
+        data: seriesData,
+        padAngle: 2,
+        itemStyle: { borderRadius: 4, borderWidth: 0 },
+        label: { show: false },
+        emphasis: {
+          scale: true,
+          scaleSize: 6,
+          itemStyle: {},
+          label: {
+            show: true,
+            fontSize: 11,
+            color: '#e2e8f0',
+            formatter: '{b}\n{c}',
+          },
+        },
+        graphic: [{
+          type: 'text',
+          left: 'center',
+          top: 'middle',
+          style: { text: String(total), fill: '#fff', font: 'bold 20px sans-serif', textAlign: 'center' },
+        }],
+      },
+    ],
+  }
 
-      {/* Legenda */}
-      <div className="flex flex-col gap-1.5 min-w-0 flex-1">
+  return (
+    <div className="flex items-center gap-3 h-full">
+      <div className="shrink-0" style={{ width: 130, height: '100%' }}>
+        <ReactECharts option={option} style={{ height: '100%', width: '100%' }} opts={{ renderer: 'canvas' }} />
+      </div>
+      <div className="flex flex-col gap-1.5 min-w-0 flex-1 overflow-hidden">
         {dados.slice(0, 8).map((d, i) => (
-          <div
-            key={i}
-            className={`flex items-center gap-2 min-w-0 rounded-lg px-1.5 py-0.5 transition-all cursor-default ${ativo === i ? 'bg-white/[0.06]' : ''}`}
-            onMouseEnter={() => setAtivo(i)}
-            onMouseLeave={() => setAtivo(null)}
-          >
+          <div key={i} className="flex items-center gap-2 min-w-0">
             <span className="w-2 h-2 rounded-full shrink-0" style={{ background: CORES[i % CORES.length] }} />
             <span className="text-xs text-slate-400 truncate flex-1">{d[campo]}</span>
             <span className="text-xs font-medium text-slate-300 shrink-0">{d.total}</span>
@@ -179,6 +228,7 @@ function GraficoRosca({ dados, campo }) {
     </div>
   )
 }
+
 
 // ── Card de número ─────────────────────────────────────────────────────────────
 function Card({ label, valor, sub, cor = 'indigo', destaque }) {
@@ -197,7 +247,6 @@ function Card({ label, valor, sub, cor = 'indigo', destaque }) {
   )
 }
 
-// ── Skeleton ───────────────────────────────────────────────────────────────────
 function Skeleton({ h = 'h-40' }) {
   return <div className={`${h} animate-pulse bg-white/[0.03] rounded-xl`} />
 }
@@ -318,26 +367,26 @@ export default function Protocolos() {
 
       {/* Cards totais */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-        <Card label="Total"              valor={t?.total}      cor="indigo"  destaque />
-        <Card label="Abertos"            valor={t?.abertos}    cor="amber"
+        <Card label="Total"               valor={t?.total}      cor="indigo" destaque />
+        <Card label="Abertos"             valor={t?.abertos}    cor="amber"
           sub={t?.total ? `${Math.round((t.abertos / t.total) * 100)}% do total` : ''} />
-        <Card label="Encerrados"         valor={t?.encerrados} cor="emerald"
+        <Card label="Encerrados"          valor={t?.encerrados} cor="emerald"
           sub={t?.total ? `${pctEncerrados}% do total` : ''} />
         <Card label="Taxa de encerramento"
           valor={t?.total ? `${pctEncerrados}%` : '—'}
           cor={pctEncerrados >= 80 ? 'emerald' : pctEncerrados >= 50 ? 'amber' : 'rose'} />
       </div>
 
-      {/* Gráfico de barras por dia */}
+      {/* Barras por dia */}
       <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-5 mb-5">
         <div className="flex items-center justify-between mb-4">
           <p className="text-sm font-semibold text-white">Chamados por dia</p>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5 text-xs text-slate-400">
-              <span className="w-3 h-2 rounded-sm inline-block" style={{ background: 'rgba(99,102,241,0.25)' }} /> Total
+              <span className="w-3 h-2 rounded-sm inline-block" style={{ background: 'rgba(99,102,241,0.4)' }} /> Total
             </span>
             <span className="flex items-center gap-1.5 text-xs text-slate-400">
-              <span className="w-3 h-2 rounded-sm bg-indigo-500 inline-block" /> Encerrados
+              <span className="w-3 h-2 rounded-sm bg-indigo-400 inline-block" /> Encerrados
             </span>
           </div>
         </div>
@@ -346,15 +395,15 @@ export default function Protocolos() {
         </div>
       </div>
 
-      {/* Rosca: Status + Canal + Tipo */}
+      {/* Roscas */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { titulo: 'Por atendente', key: 'por_atendente', campo: 'atendente' },
-          { titulo: 'Por canal',  key: 'por_canal',  campo: 'canal'  },
-          { titulo: 'Por tipo',   key: 'por_tipo',   campo: 'tipo'   },
+          { titulo: 'Por canal',     key: 'por_canal',     campo: 'canal'     },
+          { titulo: 'Por tipo',      key: 'por_tipo',      campo: 'tipo'      },
         ].map(({ titulo, key, campo }) => (
           <div key={key} className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-5">
-            <p className="text-sm font-semibold text-white mb-4">{titulo}</p>
+            <p className="text-sm font-semibold text-white mb-3">{titulo}</p>
             <div className="h-44">
               {carregando
                 ? <Skeleton h="h-44" />
