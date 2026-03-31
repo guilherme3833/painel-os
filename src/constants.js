@@ -52,6 +52,15 @@ export const PAGINAS_CONFIG = [
     ],
   },
   {
+    id: 'fila_os',
+    label: 'Fila de OS',
+    descricao: 'Fila de ordens de serviço abertas com reordenação manual',
+    acoes: [
+      { id: 'ver', label: 'Visualizar' },
+      { id: 'reordenar', label: 'Reordenar' },
+    ],
+  },
+  {
     id: 'protocolos_dia',
     label: 'Chamados do dia',
     descricao: 'Resumo diário de chamados por bairro',

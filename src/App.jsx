@@ -10,6 +10,7 @@ import Usuarios from './pages/Usuarios'
 import Perfil from './pages/Perfil'
 import Protocolos from './pages/Protocolos'
 import ProtocolosDia from './pages/ProtocolosDia'
+import FilaOS from './pages/FilaOS'
 
 function Painel() {
   const { usuario } = useAuth()
@@ -48,6 +49,7 @@ function Painel() {
     lista: <Lista />,
     protocolos: <Protocolos />,
     protocolos_dia: <ProtocolosDia />,
+    fila_os: <FilaOS />,
     usuarios: <Usuarios />,
     perfil: <Perfil />,
   }

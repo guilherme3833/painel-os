@@ -209,6 +209,18 @@ export async function salvarConfigFaltaAgua(ids) {
   return setDoc(doc(db, 'config', 'falta_agua'), { ids })
 }
 
+// ── Config: Fila OS ───────────────────────────────────────────────────────────
+
+export async function buscarFilaOS() {
+  const snap = await getDoc(doc(db, 'config', 'fila_os'))
+  if (snap.exists()) return snap.data().ordem || []
+  return []
+}
+
+export async function salvarFilaOS(ordem) {
+  return setDoc(doc(db, 'config', 'fila_os'), { ordem })
+}
+
 export async function criarUsuarioAdmin(email, roleId, criadoPor) {
   // Usa app secundária para não deslogar o admin atual
   const appSecundario = initializeApp(firebaseConfig, `temp_${Date.now()}`)
