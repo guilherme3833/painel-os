@@ -197,6 +197,18 @@ export async function deletarConvite(email) {
   return deleteDoc(doc(db, 'convites', email.toLowerCase().trim()))
 }
 
+// ── Config: Falta de Água ─────────────────────────────────────────────────────
+
+export async function buscarConfigFaltaAgua() {
+  const snap = await getDoc(doc(db, 'config', 'falta_agua'))
+  if (snap.exists()) return snap.data()
+  return { ids: [] }
+}
+
+export async function salvarConfigFaltaAgua(ids) {
+  return setDoc(doc(db, 'config', 'falta_agua'), { ids })
+}
+
 export async function criarUsuarioAdmin(email, roleId, criadoPor) {
   // Usa app secundária para não deslogar o admin atual
   const appSecundario = initializeApp(firebaseConfig, `temp_${Date.now()}`)

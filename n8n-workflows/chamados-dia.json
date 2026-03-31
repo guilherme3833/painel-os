@@ -1,0 +1,163 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "path": "chamados/dia",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-1800, 520],
+      "id": "dia-wh-0000-0000-0000-000000000001",
+      "name": "Webhook",
+      "webhookId": "dia-wh-0001-0000-0000-000000000001"
+    },
+    {
+      "parameters": {
+        "jsCode": "const q = $input.first().json.query\nconst ids = (q.ids || '').toString().trim()\nconst inClause = ids.length ? ids : '0'\nreturn [{ json: { inicio: q.inicio, fim: q.fim, inClause } }]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-1560, 520],
+      "id": "dia-ep-0000-0000-0000-000000000001",
+      "name": "Extrair Params"
+    },
+
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  COUNT(*) AS total,\n  SUM(c.encerrado = 's') AS encerrados,\n  SUM(c.encerrado = 'n') AS abertos\nFROM chamados c\nWHERE c.data BETWEEN '{{ $json.inicio }}' AND '{{ $json.fim }}'\n  AND c.id_tipo IN ({{ $json.inClause }})",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [-1280, 200],
+      "id": "dia-t1-0000-0000-0000-000000000001",
+      "name": "MySQL Totais",
+      "credentials": { "mySql": { "id": "5pBRjyVxIwR5AI6n", "name": "MySQL Call Center" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all().map(i => i.json)\nreturn [{ json: { _key: 'totais', data: rows } }]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-1040, 200],
+      "id": "dia-w1-0000-0000-0000-000000000001",
+      "name": "Wrap Totais"
+    },
+
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  c.data AS dia,\n  COUNT(*) AS total,\n  SUM(c.encerrado = 's') AS encerrados\nFROM chamados c\nWHERE c.data BETWEEN '{{ $json.inicio }}' AND '{{ $json.fim }}'\n  AND c.id_tipo IN ({{ $json.inClause }})\nGROUP BY c.data\nORDER BY c.data ASC",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [-1280, 520],
+      "id": "dia-t2-0000-0000-0000-000000000002",
+      "name": "MySQL Por Dia",
+      "credentials": { "mySql": { "id": "5pBRjyVxIwR5AI6n", "name": "MySQL Call Center" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all().map(i => i.json)\nreturn [{ json: { _key: 'por_dia', data: rows } }]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-1040, 520],
+      "id": "dia-w2-0000-0000-0000-000000000002",
+      "name": "Wrap Por Dia"
+    },
+
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  COALESCE(NULLIF(TRIM(c.bairro), ''), 'Não informado') AS bairro,\n  COUNT(*) AS total\nFROM chamados c\nWHERE c.data BETWEEN '{{ $json.inicio }}' AND '{{ $json.fim }}'\n  AND c.id_tipo IN ({{ $json.inClause }})\nGROUP BY c.bairro\nORDER BY total DESC\nLIMIT 20",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [-1280, 840],
+      "id": "dia-t3-0000-0000-0000-000000000003",
+      "name": "MySQL Por Bairro",
+      "credentials": { "mySql": { "id": "5pBRjyVxIwR5AI6n", "name": "MySQL Call Center" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all().map(i => i.json)\nreturn [{ json: { _key: 'por_bairro', data: rows } }]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-1040, 840],
+      "id": "dia-w3-0000-0000-0000-000000000003",
+      "name": "Wrap Por Bairro"
+    },
+
+    {
+      "parameters": {
+        "mode": "append",
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [-760, 520],
+      "id": "dia-mg-0000-0000-0000-000000000001",
+      "name": "Merge"
+    },
+
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all().map(i => i.json)\n\nfunction get(key) {\n  return items.find(i => i._key === key)?.data || []\n}\n\nconst totaisRow = get('totais')[0] || { total: 0, encerrados: 0, abertos: 0 }\n\nconst resultado = {\n  totais: {\n    total: Number(totaisRow.total),\n    encerrados: Number(totaisRow.encerrados),\n    abertos: Number(totaisRow.abertos)\n  },\n  por_dia: get('por_dia').map(d => ({ dia: d.dia, total: Number(d.total), encerrados: Number(d.encerrados) })),\n  por_bairro: get('por_bairro').map(d => ({ bairro: d.bairro, total: Number(d.total) }))\n}\n\nreturn [{ json: { body: JSON.stringify(resultado) } }]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-520, 520],
+      "id": "dia-mr-0000-0000-0000-000000000001",
+      "name": "Montar Resposta"
+    },
+
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.body }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              { "name": "Content-Type", "value": "application/json; charset=utf-8" },
+              { "name": "Access-Control-Allow-Origin", "value": "*" }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [-280, 520],
+      "id": "dia-rs-0000-0000-0000-000000000001",
+      "name": "Responder"
+    }
+  ],
+  "connections": {
+    "Webhook":        { "main": [[{ "node": "Extrair Params", "type": "main", "index": 0 }]] },
+    "Extrair Params": { "main": [[
+      { "node": "MySQL Totais",    "type": "main", "index": 0 },
+      { "node": "MySQL Por Dia",   "type": "main", "index": 0 },
+      { "node": "MySQL Por Bairro","type": "main", "index": 0 }
+    ]] },
+    "MySQL Totais":    { "main": [[{ "node": "Wrap Totais",    "type": "main", "index": 0 }]] },
+    "MySQL Por Dia":   { "main": [[{ "node": "Wrap Por Dia",   "type": "main", "index": 0 }]] },
+    "MySQL Por Bairro":{ "main": [[{ "node": "Wrap Por Bairro","type": "main", "index": 0 }]] },
+    "Wrap Totais":     { "main": [[{ "node": "Merge", "type": "main", "index": 0 }]] },
+    "Wrap Por Dia":    { "main": [[{ "node": "Merge", "type": "main", "index": 1 }]] },
+    "Wrap Por Bairro": { "main": [[{ "node": "Merge", "type": "main", "index": 2 }]] },
+    "Merge":           { "main": [[{ "node": "Montar Resposta","type": "main", "index": 0 }]] },
+    "Montar Resposta": { "main": [[{ "node": "Responder",      "type": "main", "index": 0 }]] }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ddde3ba2d4f38e1765392468f917b5df6604c73bfaf362e501797732bbfb53bc"
+  }
+}
