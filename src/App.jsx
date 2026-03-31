@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Sidebar from './components/Sidebar'
 import Toast from './components/Toast'
 import Login from './pages/Login'
+import Home from './pages/Home'
 import Dashboard from './pages/Dashboard'
 import Lista from './pages/Lista'
 import Usuarios from './pages/Usuarios'
@@ -11,7 +12,7 @@ import Protocolos from './pages/Protocolos'
 
 function Painel() {
   const { usuario } = useAuth()
-  const [pagina, setPagina] = useState('dashboard')
+  const [pagina, setPagina] = useState('home')
   const [toasts, setToasts] = useState([])
   const [sidebarAberta, setSidebarAberta] = useState(true)
 
@@ -41,6 +42,7 @@ function Painel() {
   const ml = sidebarAberta ? 'ml-56' : 'ml-16'
 
   const paginas = {
+    home: <Home setPagina={setPagina} />,
     dashboard: <Dashboard onVerLista={() => setPagina('lista')} onToast={adicionarToast} />,
     lista: <Lista />,
     protocolos: <Protocolos />,
@@ -57,7 +59,7 @@ function Painel() {
         setAberta={setSidebarAberta}
       />
       <main className={`${ml} flex-1 min-w-0 transition-all duration-300`}>
-        {paginas[pagina] || paginas.dashboard}
+        {paginas[pagina] || paginas.home}
       </main>
       <Toast toasts={toasts} onRemover={removerToast} />
     </div>
