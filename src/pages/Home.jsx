@@ -40,6 +40,18 @@ const ATALHOS = [
     cor: 'cyan',
   },
   {
+    id: 'protocolos_dia',
+    label: "Falta d'água",
+    descricao: 'Resumo diário de chamados por bairro',
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+    ),
+    cor: 'blue',
+  },
+  {
     id: 'usuarios',
     label: 'Usuários',
     descricao: 'Gestão de usuários, perfis e convites',
@@ -60,6 +72,7 @@ const CORES = {
   violet:  { card: 'border-violet-500/20  bg-violet-500/5  hover:border-violet-500/40  hover:bg-violet-500/10',  icon: 'bg-violet-500/15 text-violet-400' },
   cyan:    { card: 'border-cyan-500/20    bg-cyan-500/5    hover:border-cyan-500/40    hover:bg-cyan-500/10',    icon: 'bg-cyan-500/15   text-cyan-400'   },
   emerald: { card: 'border-emerald-500/20 bg-emerald-500/5 hover:border-emerald-500/40 hover:bg-emerald-500/10', icon: 'bg-emerald-500/15 text-emerald-400' },
+  blue:    { card: 'border-blue-500/20    bg-blue-500/5    hover:border-blue-500/40    hover:bg-blue-500/10',    icon: 'bg-blue-500/15   text-blue-400'   },
 }
 
 function saudacaoHora() {
