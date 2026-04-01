@@ -56,7 +56,7 @@ function barraEspera(dias) {
 }
 
 // ── Item arrastável ────────────────────────────────────────────────────────────
-function ItemOS({ os, posicao, podeReordenar, onTopo, onFim }) {
+function ItemOS({ os, posicao, podeReordenar, onTopo, onSubir, onDescer, onFim }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: os.codigo })
   const [expandido, setExpandido] = useState(false)
 
@@ -127,19 +127,35 @@ function ItemOS({ os, posicao, podeReordenar, onTopo, onFim }) {
         </button>
       </div>
 
-      {/* Botões topo/fim */}
+      {/* Botões de posição */}
       {podeReordenar && (
-        <div className="flex flex-col gap-1 pr-3 py-2 justify-center shrink-0">
-          <button onClick={onTopo} title="Mover para o início"
+        <div className="flex flex-col gap-0.5 pr-3 py-2 justify-center shrink-0">
+          {/* Ir para o topo */}
+          <button onClick={onTopo} title="Primeiro da fila"
             className="w-6 h-6 flex items-center justify-center rounded text-slate-600 hover:text-indigo-400 hover:bg-indigo-500/10 transition-all">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
-              <polyline points="17 11 12 6 7 11"/><line x1="12" y1="18" x2="12" y2="6"/>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
+              <path d="M11 5.83L7.41 9.41 6 8l6-6 6 6-1.41 1.41L13 5.83V21h-2z"/>
             </svg>
           </button>
-          <button onClick={onFim} title="Mover para o fim"
-            className="w-6 h-6 flex items-center justify-center rounded text-slate-600 hover:text-slate-400 hover:bg-white/[0.06] transition-all">
+          {/* Subir uma posição */}
+          <button onClick={onSubir} title="Subir uma posição"
+            className="w-6 h-6 flex items-center justify-center rounded text-slate-600 hover:text-slate-300 hover:bg-white/[0.06] transition-all">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
-              <polyline points="7 13 12 18 17 13"/><line x1="12" y1="6" x2="12" y2="18"/>
+              <polyline points="18 15 12 9 6 15"/>
+            </svg>
+          </button>
+          {/* Descer uma posição */}
+          <button onClick={onDescer} title="Descer uma posição"
+            className="w-6 h-6 flex items-center justify-center rounded text-slate-600 hover:text-slate-300 hover:bg-white/[0.06] transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          {/* Ir para o fim */}
+          <button onClick={onFim} title="Último da fila"
+            className="w-6 h-6 flex items-center justify-center rounded text-slate-600 hover:text-slate-400 hover:bg-white/[0.06] transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
+              <path d="M13 18.17L16.59 14.59 18 16l-6 6-6-6 1.41-1.41L11 18.17V3h2z"/>
             </svg>
           </button>
         </div>
@@ -212,13 +228,7 @@ export default function FilaOS() {
     return () => clearInterval(timerRef.current)
   }, [buscarOS])
 
-  async function moverPara(codigo, destino) {
-    const idx = lista.findIndex(o => Number(o.codigo) === Number(codigo))
-    if (idx === -1) return
-    const novaLista = [...lista]
-    const [item] = novaLista.splice(idx, 1)
-    if (destino === 'topo') novaLista.unshift(item)
-    else novaLista.push(item)
+  async function salvar(novaLista) {
     setLista(novaLista)
     setSalvando(true)
     try {
@@ -228,6 +238,25 @@ export default function FilaOS() {
     } finally {
       setSalvando(false)
     }
+  }
+
+  async function moverPara(codigo, destino) {
+    const idx = lista.findIndex(o => Number(o.codigo) === Number(codigo))
+    if (idx === -1) return
+    const novaLista = [...lista]
+    const [item] = novaLista.splice(idx, 1)
+    if (destino === 'topo') novaLista.unshift(item)
+    else novaLista.push(item)
+    await salvar(novaLista)
+  }
+
+  async function moverUma(codigo, direcao) {
+    const idx = lista.findIndex(o => Number(o.codigo) === Number(codigo))
+    if (idx === -1) return
+    if (direcao === 'subir' && idx === 0) return
+    if (direcao === 'descer' && idx === lista.length - 1) return
+    const novaLista = arrayMove(lista, idx, direcao === 'subir' ? idx - 1 : idx + 1)
+    await salvar(novaLista)
   }
 
   async function handleDragEnd(event) {
@@ -306,6 +335,8 @@ export default function FilaOS() {
               {lista.map((os, i) => (
                 <ItemOS key={os.codigo} os={os} posicao={i + 1} podeReordenar={podeReordenar}
                   onTopo={() => moverPara(os.codigo, 'topo')}
+                  onSubir={() => moverUma(os.codigo, 'subir')}
+                  onDescer={() => moverUma(os.codigo, 'descer')}
                   onFim={() => moverPara(os.codigo, 'fim')} />
               ))}
             </div>
