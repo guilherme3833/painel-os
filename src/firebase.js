@@ -18,6 +18,7 @@ import {
   deleteDoc,
   collection,
   getDocs,
+  onSnapshot,
   serverTimestamp,
 } from 'firebase/firestore'
 import { ROLE_ADMIN_ID, PERMISSOES_ADMIN, PAGINAS_CONFIG } from './constants'
@@ -211,14 +212,14 @@ export async function salvarConfigFaltaAgua(ids) {
 
 // ── Config: Fila OS ───────────────────────────────────────────────────────────
 
-export async function buscarFilaOS() {
-  const snap = await getDoc(doc(db, 'config', 'fila_os'))
-  if (snap.exists()) return snap.data().ordem || []
-  return []
-}
-
 export async function salvarFilaOS(ordem) {
   return setDoc(doc(db, 'config', 'fila_os'), { ordem })
+}
+
+export function ouvirFilaOS(callback) {
+  return onSnapshot(doc(db, 'config', 'fila_os'), snap => {
+    callback(snap.exists() ? (snap.data().ordem || []) : [])
+  })
 }
 
 export async function criarUsuarioAdmin(email, roleId, criadoPor) {
