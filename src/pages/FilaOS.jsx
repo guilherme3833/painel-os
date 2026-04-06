@@ -124,14 +124,18 @@ function ModalAtribuir({ os, atribuicaoAtual, onAtribuir, onRemover, onFechar })
 
   useEffect(() => {
     Promise.all([listarUsuarios(), listarPerfis()]).then(([users, perfis]) => {
-      const perfisComAtribuicao = new Set(
-        perfis.filter(p => p.permissoes?.fila_os?.aceitar_atribuicao).map(p => p.id)
-      )
-      const filtrados = users.filter(u => perfisComAtribuicao.has(u.roleId))
+      const perfisMap = new Map(perfis.map(p => [p.id, p]))
+      const filtrados = users.filter(u => {
+        const perfil = perfisMap.get(u.roleId)
+        if (!perfil?.permissoes?.fila_os?.aceitar_atribuicao) return false
+        const servicos = perfil.servicos_fila || []
+        if (servicos.length === 0) return true
+        return servicos.includes(os.servico)
+      })
       setUsuarios(filtrados)
       setCarregando(false)
     }).catch(() => setCarregando(false))
-  }, [])
+  }, [os.servico])
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
