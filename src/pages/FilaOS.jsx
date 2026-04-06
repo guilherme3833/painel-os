@@ -364,7 +364,8 @@ export default function FilaOS() {
   const [lista, setLista]                   = useState([])
   const [atribuicoes, setAtribuicoes]       = useState({})
   const [filtrosServico, setFiltrosServico] = useState(new Set())
-  const [filtroTexto, setFiltroTexto]       = useState('')
+  const [filtroNumero, setFiltroNumero]     = useState('')
+  const [filtroEndereco, setFiltroEndereco] = useState('')
   const [carregando, setCarregando]         = useState(true)
   const [atualizando, setAtualizando]     = useState(false)
   const [salvando, setSalvando]           = useState(false)
@@ -484,15 +485,11 @@ export default function FilaOS() {
     ? lista.filter(o => servicosPermitidos.includes(o.servico))
     : lista
   const servicos = [...new Set(listaPermitida.map(o => o.servico).filter(Boolean))].sort()
-  const temFiltro = filtrosServico.size > 0 || filtroTexto.trim() !== ''
+  const temFiltro = filtrosServico.size > 0 || filtroNumero.trim() !== '' || filtroEndereco.trim() !== ''
   const listaFiltrada = listaPermitida.filter(o => {
     if (filtrosServico.size > 0 && !filtrosServico.has(o.servico)) return false
-    if (filtroTexto.trim()) {
-      const txt = filtroTexto.trim().toLowerCase()
-      const noNumero = String(o.numero || '').toLowerCase().includes(txt)
-      const noEndereco = String(o.endereco_final || '').toLowerCase().includes(txt)
-      if (!noNumero && !noEndereco) return false
-    }
+    if (filtroNumero.trim() && !String(o.numero || '').toLowerCase().includes(filtroNumero.trim().toLowerCase())) return false
+    if (filtroEndereco.trim() && !String(o.endereco_final || '').toLowerCase().includes(filtroEndereco.trim().toLowerCase())) return false
     return true
   })
 
@@ -539,15 +536,24 @@ export default function FilaOS() {
 
       {/* Filtros */}
       <div className="flex items-center gap-2 mb-5">
-        <div className="flex-1 flex items-center gap-1.5 bg-white/[0.04] border border-white/[0.08] rounded-xl px-2.5 py-1.5 focus-within:border-indigo-500/40 transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 text-slate-600 shrink-0">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input value={filtroTexto} onChange={e => setFiltroTexto(e.target.value)}
-            placeholder="Número ou endereço..."
+        <div className="w-28 flex items-center gap-1.5 bg-white/[0.04] border border-white/[0.08] rounded-xl px-2.5 py-1.5 focus-within:border-indigo-500/40 transition-colors shrink-0">
+          <input value={filtroNumero} onChange={e => setFiltroNumero(e.target.value)}
+            placeholder="Nº OS..."
             className="bg-transparent text-xs text-slate-300 placeholder-slate-600 focus:outline-none w-full" />
-          {filtroTexto && (
-            <button onClick={() => setFiltroTexto('')} className="text-slate-600 hover:text-slate-300 transition-colors shrink-0">
+          {filtroNumero && (
+            <button onClick={() => setFiltroNumero('')} className="text-slate-600 hover:text-slate-300 transition-colors shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3 h-3">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          )}
+        </div>
+        <div className="flex-1 flex items-center gap-1.5 bg-white/[0.04] border border-white/[0.08] rounded-xl px-2.5 py-1.5 focus-within:border-indigo-500/40 transition-colors">
+          <input value={filtroEndereco} onChange={e => setFiltroEndereco(e.target.value)}
+            placeholder="Endereço..."
+            className="bg-transparent text-xs text-slate-300 placeholder-slate-600 focus:outline-none w-full" />
+          {filtroEndereco && (
+            <button onClick={() => setFiltroEndereco('')} className="text-slate-600 hover:text-slate-300 transition-colors shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3 h-3">
                 <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
               </svg>
