@@ -111,18 +111,23 @@ function ItemOS({ os, posicao, podeReordenar, onTopo, onSubir, onDescer, onFim }
           <BadgeDias dias={dias} />
         </div>
 
+        {/* Serviço */}
+        {os.servico && (
+          <p className="text-xs font-medium text-slate-400 truncate mb-0.5">{os.servico}</p>
+        )}
+
+        {/* Endereço */}
+        {os.endereco_final && (
+          <p className="text-xs text-slate-600 truncate mb-1">{os.endereco_final}</p>
+        )}
+
         {/* Descrição clicável */}
-        <button
-          onClick={() => setExpandido(e => !e)}
-          className="text-left w-full group"
-        >
+        <button onClick={() => setExpandido(e => !e)} className="text-left w-full group">
           <p className={`text-sm text-slate-300 group-hover:text-white transition-colors ${expandido ? '' : 'truncate'}`}>
             {os.descricao || '—'}
           </p>
           {!expandido && os.descricao?.length > 60 && (
-            <span className="text-[10px] text-slate-600 group-hover:text-indigo-400 transition-colors">
-              ver mais
-            </span>
+            <span className="text-[10px] text-slate-600 group-hover:text-indigo-400 transition-colors">ver mais</span>
           )}
         </button>
       </div>

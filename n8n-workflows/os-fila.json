@@ -16,7 +16,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT\n  o.codigo,\n  o.numero,\n  o.data_abertura,\n  o.descricao,\n  o.status\nFROM Ordem_Servico o\nWHERE o.encerrado = 'n'\nORDER BY o.data_abertura ASC",
+        "query": "SELECT\n  o.codigo,\n  o.numero,\n  o.data_abertura,\n  o.descricao,\n  o.servico,\n  o.endereco_final\nFROM Ordem_Servico o\nWHERE o.encerrado = 'n'\nORDER BY o.data_abertura ASC",
         "options": {}
       },
       "type": "n8n-nodes-base.mySql",
