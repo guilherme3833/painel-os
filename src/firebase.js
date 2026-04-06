@@ -243,15 +243,12 @@ export async function atribuirOS(codigo, uid, nome) {
 // ── Log de atividades ─────────────────────────────────────────────────────────
 
 export async function registrarLog(uid, nome, acao, detalhes = {}) {
-  const agora = new Date()
-  const expiraEm = new Date(agora.getTime() + 300 * 24 * 60 * 60 * 1000)
   return addDoc(collection(db, 'logs'), {
     uid,
     nome,
     acao,
     detalhes,
     criadoEm: serverTimestamp(),
-    expiraEm: Timestamp.fromDate(expiraEm),
   })
 }
 
