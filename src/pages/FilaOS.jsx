@@ -55,9 +55,8 @@ function barraEspera(dias) {
   return 'bg-indigo-500'
 }
 
-// ── Item arrastável ────────────────────────────────────────────────────────────
-// ── Combobox com busca ─────────────────────────────────────────────────────────
-function ComboServico({ opcoes, valor, onChange }) {
+// ── Filtro multi-select de serviços ───────────────────────────────────────────
+function FiltroServicos({ opcoes, selecionados, onChange }) {
   const [busca, setBusca] = useState('')
   const [aberto, setAberto] = useState(false)
   const ref = useRef(null)
@@ -70,44 +69,58 @@ function ComboServico({ opcoes, valor, onChange }) {
     return () => document.removeEventListener('mousedown', fechar)
   }, [])
 
-  function selecionar(v) { onChange(v); setBusca(''); setAberto(false) }
-  function limpar() { onChange(''); setBusca(''); setAberto(false) }
+  function toggle(s) {
+    const novo = new Set(selecionados)
+    novo.has(s) ? novo.delete(s) : novo.add(s)
+    onChange(novo)
+  }
+
+  const qtd = selecionados.size
 
   return (
     <div ref={ref} className="relative">
-      <div className={`flex items-center gap-1 bg-white/[0.04] border rounded-xl px-2.5 py-1.5 transition-colors ${aberto ? 'border-indigo-500/40' : 'border-white/[0.08]'}`}>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 text-slate-600 shrink-0">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      <button onClick={() => setAberto(v => !v)}
+        className={`flex items-center gap-1.5 bg-white/[0.04] border rounded-xl px-2.5 py-1.5 text-xs transition-colors ${aberto ? 'border-indigo-500/40' : 'border-white/[0.08]'} ${qtd > 0 ? 'text-indigo-400' : 'text-slate-400'}`}>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 shrink-0">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/>
         </svg>
-        <input
-          value={aberto ? busca : (valor || '')}
-          onChange={e => { setBusca(e.target.value); setAberto(true) }}
-          onFocus={() => { setAberto(true); setBusca('') }}
-          placeholder="Filtrar serviço..."
-          className="bg-transparent text-xs text-slate-300 placeholder-slate-600 focus:outline-none w-40"
-        />
-        {valor && !aberto && (
-          <button onClick={limpar} className="text-slate-600 hover:text-slate-300 transition-colors">
+        {qtd > 0 ? `${qtd} serviço${qtd > 1 ? 's' : ''}` : 'Serviços'}
+        {qtd > 0 && (
+          <span onClick={e => { e.stopPropagation(); onChange(new Set()) }}
+            className="text-slate-600 hover:text-slate-300 transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3 h-3">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
-          </button>
+          </span>
         )}
-      </div>
+      </button>
 
       {aberto && (
         <div className="absolute right-0 top-full mt-1 w-72 bg-[#1a2236] border border-white/[0.08] rounded-xl shadow-2xl z-50 overflow-hidden">
-          <div className="max-h-60 overflow-y-auto">
-            <button onClick={limpar}
-              className={`w-full text-left px-3 py-2 text-xs transition-colors ${!valor ? 'text-indigo-400 bg-indigo-500/10' : 'text-slate-500 hover:text-white hover:bg-white/[0.04]'}`}>
-              Todos os serviços
-            </button>
+          <div className="px-3 pt-2.5 pb-1.5 border-b border-white/[0.06]">
+            <input value={busca} onChange={e => setBusca(e.target.value)}
+              placeholder="Buscar serviço..."
+              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs text-slate-300 placeholder-slate-600 focus:outline-none focus:border-indigo-500/40" />
+          </div>
+          <div className="flex gap-2 px-3 py-1.5 border-b border-white/[0.06]">
+            <button onClick={() => onChange(new Set(opcoes))} className="text-[10px] text-slate-500 hover:text-indigo-400 transition-colors">Marcar todos</button>
+            <span className="text-slate-700">·</span>
+            <button onClick={() => onChange(new Set())} className="text-[10px] text-slate-500 hover:text-rose-400 transition-colors">Limpar</button>
+          </div>
+          <div className="max-h-56 overflow-y-auto py-1">
             {filtradas.length === 0 ? (
               <p className="px-3 py-2 text-xs text-slate-600">Nenhum resultado</p>
             ) : filtradas.map(s => (
-              <button key={s} onClick={() => selecionar(s)}
-                className={`w-full text-left px-3 py-2 text-xs transition-colors ${valor === s ? 'text-indigo-400 bg-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/[0.04]'}`}>
-                {s}
+              <button key={s} onClick={() => toggle(s)}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left hover:bg-white/[0.04] transition-colors">
+                <span className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${selecionados.has(s) ? 'bg-indigo-500 border-indigo-500' : 'border-white/20'}`}>
+                  {selecionados.has(s) && (
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-2.5 h-2.5">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  )}
+                </span>
+                <span className={selecionados.has(s) ? 'text-slate-200' : 'text-slate-400'}>{s}</span>
               </button>
             ))}
           </div>
@@ -348,10 +361,11 @@ export default function FilaOS() {
   const podeReordenar = temPermissao('fila_os', 'reordenar')
   const podeAtribuir  = temPermissao('fila_os', 'atribuir')
 
-  const [lista, setLista]                 = useState([])
-  const [atribuicoes, setAtribuicoes]     = useState({})
-  const [filtroServico, setFiltroServico] = useState('')
-  const [carregando, setCarregando]       = useState(true)
+  const [lista, setLista]                   = useState([])
+  const [atribuicoes, setAtribuicoes]       = useState({})
+  const [filtrosServico, setFiltrosServico] = useState(new Set())
+  const [filtroTexto, setFiltroTexto]       = useState('')
+  const [carregando, setCarregando]         = useState(true)
   const [atualizando, setAtualizando]     = useState(false)
   const [salvando, setSalvando]           = useState(false)
   const [erro, setErro]                   = useState('')
@@ -470,7 +484,17 @@ export default function FilaOS() {
     ? lista.filter(o => servicosPermitidos.includes(o.servico))
     : lista
   const servicos = [...new Set(listaPermitida.map(o => o.servico).filter(Boolean))].sort()
-  const listaFiltrada = filtroServico ? listaPermitida.filter(o => o.servico === filtroServico) : listaPermitida
+  const temFiltro = filtrosServico.size > 0 || filtroTexto.trim() !== ''
+  const listaFiltrada = listaPermitida.filter(o => {
+    if (filtrosServico.size > 0 && !filtrosServico.has(o.servico)) return false
+    if (filtroTexto.trim()) {
+      const txt = filtroTexto.trim().toLowerCase()
+      const noNumero = String(o.numero || '').toLowerCase().includes(txt)
+      const noEndereco = String(o.endereco_final || '').toLowerCase().includes(txt)
+      if (!noNumero && !noEndereco) return false
+    }
+    return true
+  })
 
   return (
     <>
@@ -491,30 +515,48 @@ export default function FilaOS() {
       )}
       <div className="px-6 py-6 max-w-3xl mx-auto fade-up">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-lg font-semibold text-white">Fila de OS</h1>
           <p className="text-sm text-slate-500 mt-0.5 flex items-center gap-2">
-            {carregando ? 'Carregando...' : `${listaFiltrada.length}${filtroServico ? `/${lista.length}` : ''} ordens abertas`}
+            {carregando ? 'Carregando...' : `${listaFiltrada.length}${temFiltro ? `/${listaPermitida.length}` : ''} ordens abertas`}
             {atualizando && <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse inline-block" />}
             {salvando && <span className="text-indigo-400 text-xs animate-pulse">Salvando...</span>}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <div className="hidden sm:flex items-center gap-3 text-[10px] text-slate-600">
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-indigo-500 inline-block"/>{'< 15d'}</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500 inline-block"/>15–30d</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-rose-500 inline-block"/>{'> 30d'}</span>
           </div>
-          {servicos.length > 0 && (
-            <ComboServico opcoes={servicos} valor={filtroServico} onChange={setFiltroServico} />
-          )}
           <button onClick={() => buscarOS()} disabled={carregando}
             className="px-3 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs text-slate-400 hover:text-white transition-all disabled:opacity-50">
             Atualizar
           </button>
-
         </div>
+      </div>
+
+      {/* Filtros */}
+      <div className="flex items-center gap-2 mb-5">
+        <div className="flex-1 flex items-center gap-1.5 bg-white/[0.04] border border-white/[0.08] rounded-xl px-2.5 py-1.5 focus-within:border-indigo-500/40 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 text-slate-600 shrink-0">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input value={filtroTexto} onChange={e => setFiltroTexto(e.target.value)}
+            placeholder="Número ou endereço..."
+            className="bg-transparent text-xs text-slate-300 placeholder-slate-600 focus:outline-none w-full" />
+          {filtroTexto && (
+            <button onClick={() => setFiltroTexto('')} className="text-slate-600 hover:text-slate-300 transition-colors shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3 h-3">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          )}
+        </div>
+        {servicos.length > 0 && (
+          <FiltroServicos opcoes={servicos} selecionados={filtrosServico} onChange={setFiltrosServico} />
+        )}
       </div>
 
       {erro && (
