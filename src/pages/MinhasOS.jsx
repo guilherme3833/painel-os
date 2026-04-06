@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { ouvirAtribuicoes } from '../firebase'
+import { ouvirAtribuicoes, ouvirFilaOS } from '../firebase'
 
 const API = 'https://automacao.octek.com.br/webhook/os/fila'
 
@@ -90,11 +90,12 @@ function CardOS({ os }) {
 export default function MinhasOS() {
   const { usuario } = useAuth()
 
-  const [todasOS, setTodasOS]       = useState([])
+  const [todasOS, setTodasOS]         = useState([])
   const [atribuicoes, setAtribuicoes] = useState({})
-  const [carregando, setCarregando] = useState(true)
+  const [ordemFila, setOrdemFila]     = useState([])
+  const [carregando, setCarregando]   = useState(true)
   const [atualizando, setAtualizando] = useState(false)
-  const [erro, setErro]             = useState('')
+  const [erro, setErro]               = useState('')
   const timerRef = useRef(null)
 
   const buscarOS = useCallback(async (silencioso = false) => {
@@ -116,6 +117,11 @@ export default function MinhasOS() {
     return () => unsubscribe()
   }, [])
 
+  useEffect(() => {
+    const unsubscribe = ouvirFilaOS(ordem => setOrdemFila(ordem))
+    return () => unsubscribe()
+  }, [])
+
   useEffect(() => { buscarOS() }, [buscarOS])
 
   useEffect(() => {
@@ -123,9 +129,18 @@ export default function MinhasOS() {
     return () => clearInterval(timerRef.current)
   }, [buscarOS])
 
-  const minhasOS = todasOS.filter(os =>
-    atribuicoes[String(os.codigo)]?.uid === usuario?.uid
-  )
+  const minhasOS = (() => {
+    const filtradas = todasOS.filter(os =>
+      atribuicoes[String(os.codigo)]?.uid === usuario?.uid
+    )
+    if (!ordemFila.length) return filtradas
+    const mapa = new Map(ordemFila.map((id, i) => [Number(id), i]))
+    return [...filtradas].sort((a, b) => {
+      const ia = mapa.has(Number(a.codigo)) ? mapa.get(Number(a.codigo)) : Infinity
+      const ib = mapa.has(Number(b.codigo)) ? mapa.get(Number(b.codigo)) : Infinity
+      return ia - ib
+    })
+  })()
 
   return (
     <div className="px-6 py-6 max-w-3xl mx-auto fade-up">
