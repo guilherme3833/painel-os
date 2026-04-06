@@ -469,8 +469,7 @@ export default function FilaOS() {
   const listaFiltrada = filtroServico ? listaPermitida.filter(o => o.servico === filtroServico) : listaPermitida
 
   return (
-    <div className="px-6 py-6 max-w-3xl mx-auto fade-up">
-
+    <>
       {osAtribuindo && (
         <ModalAtribuir
           os={osAtribuindo}
@@ -486,7 +485,7 @@ export default function FilaOS() {
           onFechar={() => setOsAtribuindo(null)}
         />
       )}
-
+      <div className="px-6 py-6 max-w-3xl mx-auto fade-up">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -556,5 +555,6 @@ export default function FilaOS() {
         </DndContext>
       )}
     </div>
+    </>
   )
 }
