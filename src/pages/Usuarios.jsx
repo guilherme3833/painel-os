@@ -104,13 +104,24 @@ function AbaUsuarios({ perfis }) {
 }
 
 // ── Modal: criar/editar perfil ────────────────────────────────────────────────
+const API_FILA = 'https://automacao.octek.com.br/webhook/os/fila'
+
 function ModalPerfil({ perfil, onSalvar, onFechar }) {
   const editando = !!perfil
   const [nome, setNome] = useState(perfil?.nome || '')
   const [cor, setCor] = useState(perfil?.cor || 'indigo')
   const [permissoes, setPermissoes] = useState(perfil?.permissoes || PERMISSOES_PADRAO)
+  const [servicosFila, setServicosFila] = useState(perfil?.servicos_fila || [])
+  const [todosServicos, setTodosServicos] = useState([])
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState('')
+
+  useEffect(() => {
+    fetch(API_FILA).then(r => r.json()).then(rows => {
+      const unicos = [...new Set((Array.isArray(rows) ? rows : []).map(o => o.servico).filter(Boolean))].sort()
+      setTodosServicos(unicos)
+    }).catch(() => {})
+  }, [])
 
   function toggleAcao(pagina, acao) {
     setPermissoes(prev => ({
@@ -125,7 +136,7 @@ function ModalPerfil({ perfil, onSalvar, onFechar }) {
     setErro('')
     try {
       const id = editando ? perfil.id : nome.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')
-      await salvarPerfil(id, { nome: nome.trim(), cor, permissoes })
+      await salvarPerfil(id, { nome: nome.trim(), cor, permissoes, servicos_fila: servicosFila })
       onSalvar()
     } catch {
       setErro('Erro ao salvar. Tente novamente.')
@@ -206,6 +217,30 @@ function ModalPerfil({ perfil, onSalvar, onFechar }) {
               ))}
             </div>
           </div>
+
+          {/* Serviços da Fila OS */}
+          {todosServicos.length > 0 && (
+            <div>
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1 block">Serviços visíveis na Fila de OS</label>
+              <p className="text-[11px] text-slate-600 mb-3">Vazio = vê todos os serviços</p>
+              <div className="space-y-1">
+                {todosServicos.map(s => {
+                  const ativo = servicosFila.includes(s)
+                  return (
+                    <button key={s} onClick={() => setServicosFila(prev => ativo ? prev.filter(x => x !== s) : [...prev, s])}
+                      className={`flex items-center gap-2 w-full text-left text-xs px-3 py-2 rounded-lg border transition-all ${
+                        ativo ? 'bg-amber-500/10 border-amber-500/30 text-amber-300' : 'bg-white/[0.03] border-white/10 text-slate-500 hover:border-white/20'
+                      }`}>
+                      <span className={`w-3.5 h-3.5 rounded-sm border flex items-center justify-center text-[9px] shrink-0 ${ativo ? 'bg-amber-500 border-amber-400 text-white' : 'border-slate-600'}`}>
+                        {ativo && '✓'}
+                      </span>
+                      {s}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
 
           {erro && <p className="text-red-400 text-xs">{erro}</p>}
         </div>

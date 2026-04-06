@@ -241,7 +241,7 @@ function ItemOS({ os, posicao, podeReordenar, onTopo, onSubir, onDescer, onFim }
 
 // ── Página principal ───────────────────────────────────────────────────────────
 export default function FilaOS() {
-  const { temPermissao } = useAuth()
+  const { temPermissao, servicosPermitidos } = useAuth()
   const podeReordenar = temPermissao('fila_os', 'reordenar')
 
   const [lista, setLista]             = useState([])
@@ -354,8 +354,11 @@ export default function FilaOS() {
     }
   }
 
-  const servicos = [...new Set(lista.map(o => o.servico).filter(Boolean))].sort()
-  const listaFiltrada = filtroServico ? lista.filter(o => o.servico === filtroServico) : lista
+  const listaPermitida = servicosPermitidos.length
+    ? lista.filter(o => servicosPermitidos.includes(o.servico))
+    : lista
+  const servicos = [...new Set(listaPermitida.map(o => o.servico).filter(Boolean))].sort()
+  const listaFiltrada = filtroServico ? listaPermitida.filter(o => o.servico === filtroServico) : listaPermitida
 
   return (
     <div className="px-6 py-6 max-w-3xl mx-auto fade-up">

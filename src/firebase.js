@@ -76,23 +76,23 @@ function permissoesVazias() {
 }
 
 async function garantirRolePadrao(roleId) {
-  if (roleId === ROLE_ADMIN_ID) return PERMISSOES_ADMIN
+  if (roleId === ROLE_ADMIN_ID) return { permissoes: PERMISSOES_ADMIN, servicos_fila: [] }
   const base = permissoesVazias()
   const roleRef = doc(db, 'roles', roleId)
   const roleSnap = await getDoc(roleRef)
   if (roleSnap.exists()) {
-    // Merge: base tudo-false + o que o admin concedeu no Firestore
-    const salvo = roleSnap.data().permissoes || {}
-    return Object.fromEntries(
+    const data = roleSnap.data()
+    const salvo = data.permissoes || {}
+    const permissoes = Object.fromEntries(
       Object.keys(base).map(pagina => [pagina, { ...base[pagina], ...(salvo[pagina] || {}) }])
     )
+    return { permissoes, servicos_fila: data.servicos_fila || [] }
   }
-  // Cria o perfil sem nenhuma permissão
   const padrao = ROLES_PADRAO[roleId]
   if (padrao) {
-    try { await setDoc(roleRef, { ...padrao, permissoes: base }) } catch {}
+    try { await setDoc(roleRef, { ...padrao, permissoes: base, servicos_fila: [] }) } catch {}
   }
-  return base
+  return { permissoes: base, servicos_fila: [] }
 }
 
 export async function buscarOuCriarUsuario(user) {
@@ -117,14 +117,13 @@ export async function buscarOuCriarUsuario(user) {
       criadoEm: serverTimestamp(),
     })
 
-    const permissoes = await garantirRolePadrao(roleId)
-    return { roleId, permissoes }
+    const { permissoes, servicos_fila } = await garantirRolePadrao(roleId)
+    return { roleId, permissoes, servicos_fila }
   }
 
   const data = snap.data()
   const roleId = data.roleId || data.role || 'visualizador'
 
-  // Marca convite como usado caso ainda esteja pendente
   try {
     const conviteRef = doc(db, 'convites', user.email.toLowerCase())
     const conviteSnap = await getDoc(conviteRef)
@@ -134,11 +133,11 @@ export async function buscarOuCriarUsuario(user) {
   } catch { }
 
   if (roleId === ROLE_ADMIN_ID) {
-    return { roleId, permissoes: PERMISSOES_ADMIN }
+    return { roleId, permissoes: PERMISSOES_ADMIN, servicos_fila: [] }
   }
 
-  const permissoes = await garantirRolePadrao(roleId)
-  return { roleId, permissoes }
+  const { permissoes, servicos_fila } = await garantirRolePadrao(roleId)
+  return { roleId, permissoes, servicos_fila }
 }
 
 export async function listarUsuarios() {
