@@ -363,9 +363,10 @@ export default function FilaOS() {
 
   const [lista, setLista]                   = useState([])
   const [atribuicoes, setAtribuicoes]       = useState({})
-  const [filtrosServico, setFiltrosServico] = useState(new Set())
-  const [filtroNumero, setFiltroNumero]     = useState('')
-  const [filtroEndereco, setFiltroEndereco] = useState('')
+  const [filtrosServico, setFiltrosServico]   = useState(new Set())
+  const [filtroNumero, setFiltroNumero]       = useState('')
+  const [filtroEndereco, setFiltroEndereco]   = useState('')
+  const [filtroAtribuido, setFiltroAtribuido] = useState('')
   const [carregando, setCarregando]         = useState(true)
   const [atualizando, setAtualizando]     = useState(false)
   const [salvando, setSalvando]           = useState(false)
@@ -485,13 +486,24 @@ export default function FilaOS() {
     ? lista.filter(o => servicosPermitidos.includes(o.servico))
     : lista
   const servicos = [...new Set(listaPermitida.map(o => o.servico).filter(Boolean))].sort()
-  const temFiltro = filtrosServico.size > 0 || filtroNumero.trim() !== '' || filtroEndereco.trim() !== ''
+  const temFiltro = filtrosServico.size > 0 || filtroNumero.trim() !== '' || filtroEndereco.trim() !== '' || filtroAtribuido !== ''
   const listaFiltrada = listaPermitida.filter(o => {
     if (filtrosServico.size > 0 && !filtrosServico.has(o.servico)) return false
     if (filtroNumero.trim() && !String(o.numero || '').toLowerCase().includes(filtroNumero.trim().toLowerCase())) return false
     if (filtroEndereco.trim() && !String(o.endereco_final || '').toLowerCase().includes(filtroEndereco.trim().toLowerCase())) return false
+    if (filtroAtribuido === '__none__' && atribuicoes[String(o.codigo)]) return false
+    if (filtroAtribuido && filtroAtribuido !== '__none__' && atribuicoes[String(o.codigo)]?.uid !== filtroAtribuido) return false
     return true
   })
+
+  const opcoesAtribuido = [
+    ...new Map(
+      listaPermitida
+        .map(o => atribuicoes[String(o.codigo)])
+        .filter(Boolean)
+        .map(a => [a.uid, a])
+    ).values()
+  ].sort((a, b) => a.nome.localeCompare(b.nome))
 
   return (
     <>
@@ -563,6 +575,14 @@ export default function FilaOS() {
         {servicos.length > 0 && (
           <FiltroServicos opcoes={servicos} selecionados={filtrosServico} onChange={setFiltrosServico} />
         )}
+        <select value={filtroAtribuido} onChange={e => setFiltroAtribuido(e.target.value)}
+          className={`bg-white/[0.04] border rounded-xl px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-500/40 transition-colors shrink-0 ${filtroAtribuido ? 'border-indigo-500/40 text-indigo-400' : 'border-white/[0.08] text-slate-400'}`}>
+          <option value="">Atribuído</option>
+          <option value="__none__">Não atribuído</option>
+          {opcoesAtribuido.map(a => (
+            <option key={a.uid} value={a.uid}>{a.nome}</option>
+          ))}
+        </select>
       </div>
 
       {erro && (
