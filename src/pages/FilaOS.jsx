@@ -547,23 +547,23 @@ export default function FilaOS() {
       </div>
 
       {/* Filtros */}
-      <div className="bg-white/[0.02] border border-white/[0.07] rounded-2xl p-3 mb-5">
-        <div className="flex items-center justify-between mb-2.5">
+      <div className="bg-indigo-950/40 border border-indigo-500/20 rounded-2xl p-4 mb-5">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 text-slate-500">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-indigo-400">
               <line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/>
             </svg>
-            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest">Filtros</span>
+            <span className="text-xs font-semibold text-indigo-300 uppercase tracking-widest">Filtros</span>
             {temFiltro && (
-              <span className="text-[10px] bg-indigo-500/20 text-indigo-400 px-1.5 py-0.5 rounded-full font-semibold">
+              <span className="text-[11px] bg-indigo-500/30 text-indigo-300 px-2 py-0.5 rounded-full font-semibold">
                 {[filtroNumero, filtroEndereco, filtroAtribuido].filter(Boolean).length + (filtrosServico.size > 0 ? 1 : 0)} ativo{[filtroNumero, filtroEndereco, filtroAtribuido].filter(Boolean).length + (filtrosServico.size > 0 ? 1 : 0) !== 1 ? 's' : ''}
               </span>
             )}
           </div>
           {temFiltro && (
             <button onClick={() => { setFiltroNumero(''); setFiltroEndereco(''); setFiltrosServico(new Set()); setFiltroAtribuido('') }}
-              className="text-[10px] text-slate-500 hover:text-rose-400 transition-colors flex items-center gap-1">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3 h-3">
+              className="text-xs text-slate-400 hover:text-rose-400 transition-colors flex items-center gap-1 font-medium">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5">
                 <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
               </svg>
               Limpar tudo
@@ -571,32 +571,32 @@ export default function FilaOS() {
           )}
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-3">
           {/* Nº OS */}
-          <div className="flex flex-col gap-1">
-            <span className="text-[10px] text-slate-600 font-medium px-1">Nº OS</span>
-            <div className={`flex items-center gap-1.5 bg-white/[0.04] border rounded-xl px-2.5 py-1.5 w-28 transition-colors ${filtroNumero ? 'border-indigo-500/40' : 'border-white/[0.08]'} focus-within:border-indigo-500/40`}>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs font-semibold text-slate-400 px-1">Nº OS</span>
+            <div className={`flex items-center gap-1.5 bg-black/20 border rounded-xl px-3 py-2 w-32 transition-colors ${filtroNumero ? 'border-indigo-500/60' : 'border-white/10'} focus-within:border-indigo-500/60`}>
               <input value={filtroNumero} onChange={e => setFiltroNumero(e.target.value)}
                 placeholder="Ex: 1234"
-                className="bg-transparent text-xs text-slate-300 placeholder-slate-600 focus:outline-none w-full" />
+                className="bg-transparent text-sm text-white placeholder-slate-500 focus:outline-none w-full" />
               {filtroNumero && (
-                <button onClick={() => setFiltroNumero('')} className="text-slate-600 hover:text-slate-300 shrink-0">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3 h-3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <button onClick={() => setFiltroNumero('')} className="text-slate-500 hover:text-slate-300 shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
               )}
             </div>
           </div>
 
           {/* Endereço */}
-          <div className="flex flex-col gap-1 flex-1 min-w-[140px]">
-            <span className="text-[10px] text-slate-600 font-medium px-1">Endereço</span>
-            <div className={`flex items-center gap-1.5 bg-white/[0.04] border rounded-xl px-2.5 py-1.5 transition-colors ${filtroEndereco ? 'border-indigo-500/40' : 'border-white/[0.08]'} focus-within:border-indigo-500/40`}>
+          <div className="flex flex-col gap-1.5 flex-1 min-w-[160px]">
+            <span className="text-xs font-semibold text-slate-400 px-1">Endereço</span>
+            <div className={`flex items-center gap-1.5 bg-black/20 border rounded-xl px-3 py-2 transition-colors ${filtroEndereco ? 'border-indigo-500/60' : 'border-white/10'} focus-within:border-indigo-500/60`}>
               <input value={filtroEndereco} onChange={e => setFiltroEndereco(e.target.value)}
                 placeholder="Rua, bairro..."
-                className="bg-transparent text-xs text-slate-300 placeholder-slate-600 focus:outline-none w-full" />
+                className="bg-transparent text-sm text-white placeholder-slate-500 focus:outline-none w-full" />
               {filtroEndereco && (
-                <button onClick={() => setFiltroEndereco('')} className="text-slate-600 hover:text-slate-300 shrink-0">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3 h-3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <button onClick={() => setFiltroEndereco('')} className="text-slate-500 hover:text-slate-300 shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
               )}
             </div>
@@ -604,17 +604,17 @@ export default function FilaOS() {
 
           {/* Serviços */}
           {servicos.length > 0 && (
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] text-slate-600 font-medium px-1">Serviço</span>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-xs font-semibold text-slate-400 px-1">Serviço</span>
               <FiltroServicos opcoes={servicos} selecionados={filtrosServico} onChange={setFiltrosServico} />
             </div>
           )}
 
           {/* Atribuído */}
-          <div className="flex flex-col gap-1">
-            <span className="text-[10px] text-slate-600 font-medium px-1">Atribuído a</span>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs font-semibold text-slate-400 px-1">Atribuído a</span>
             <select value={filtroAtribuido} onChange={e => setFiltroAtribuido(e.target.value)}
-              className={`bg-white/[0.04] border rounded-xl px-2.5 py-1.5 text-xs focus:outline-none transition-colors ${filtroAtribuido ? 'border-indigo-500/40 text-indigo-400' : 'border-white/[0.08] text-slate-400'}`}>
+              className={`bg-black/20 border rounded-xl px-3 py-2 text-sm focus:outline-none transition-colors ${filtroAtribuido ? 'border-indigo-500/60 text-indigo-300' : 'border-white/10 text-slate-400'}`}>
               <option value="">Todos</option>
               <option value="__none__">Não atribuído</option>
               {opcoesAtribuido.map(a => <option key={a.uid} value={a.uid}>{a.nome}</option>)}
