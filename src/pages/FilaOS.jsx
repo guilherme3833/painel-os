@@ -56,6 +56,67 @@ function barraEspera(dias) {
 }
 
 // ── Item arrastável ────────────────────────────────────────────────────────────
+// ── Combobox com busca ─────────────────────────────────────────────────────────
+function ComboServico({ opcoes, valor, onChange }) {
+  const [busca, setBusca] = useState('')
+  const [aberto, setAberto] = useState(false)
+  const ref = useRef(null)
+
+  const filtradas = opcoes.filter(o => o.toLowerCase().includes(busca.toLowerCase()))
+
+  useEffect(() => {
+    function fechar(e) { if (ref.current && !ref.current.contains(e.target)) setAberto(false) }
+    document.addEventListener('mousedown', fechar)
+    return () => document.removeEventListener('mousedown', fechar)
+  }, [])
+
+  function selecionar(v) { onChange(v); setBusca(''); setAberto(false) }
+  function limpar() { onChange(''); setBusca(''); setAberto(false) }
+
+  return (
+    <div ref={ref} className="relative">
+      <div className={`flex items-center gap-1 bg-white/[0.04] border rounded-xl px-2.5 py-1.5 transition-colors ${aberto ? 'border-indigo-500/40' : 'border-white/[0.08]'}`}>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 text-slate-600 shrink-0">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input
+          value={aberto ? busca : (valor || '')}
+          onChange={e => { setBusca(e.target.value); setAberto(true) }}
+          onFocus={() => { setAberto(true); setBusca('') }}
+          placeholder="Filtrar serviço..."
+          className="bg-transparent text-xs text-slate-300 placeholder-slate-600 focus:outline-none w-40"
+        />
+        {valor && !aberto && (
+          <button onClick={limpar} className="text-slate-600 hover:text-slate-300 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3 h-3">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        )}
+      </div>
+
+      {aberto && (
+        <div className="absolute right-0 top-full mt-1 w-72 bg-[#1a2236] border border-white/[0.08] rounded-xl shadow-2xl z-50 overflow-hidden">
+          <div className="max-h-60 overflow-y-auto">
+            <button onClick={limpar}
+              className={`w-full text-left px-3 py-2 text-xs transition-colors ${!valor ? 'text-indigo-400 bg-indigo-500/10' : 'text-slate-500 hover:text-white hover:bg-white/[0.04]'}`}>
+              Todos os serviços
+            </button>
+            {filtradas.length === 0 ? (
+              <p className="px-3 py-2 text-xs text-slate-600">Nenhum resultado</p>
+            ) : filtradas.map(s => (
+              <button key={s} onClick={() => selecionar(s)}
+                className={`w-full text-left px-3 py-2 text-xs transition-colors ${valor === s ? 'text-indigo-400 bg-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/[0.04]'}`}>
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function ItemOS({ os, posicao, podeReordenar, onTopo, onSubir, onDescer, onFim }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: os.codigo })
   const [expandido, setExpandido] = useState(false)
@@ -113,23 +174,32 @@ function ItemOS({ os, posicao, podeReordenar, onTopo, onSubir, onDescer, onFim }
 
         {/* Serviço */}
         {os.servico && (
-          <p className="text-xs font-medium text-slate-400 truncate mb-0.5">{os.servico}</p>
+          <div className="flex items-baseline gap-1.5 mb-1">
+            <span className="text-[10px] font-semibold text-slate-600 uppercase tracking-wider shrink-0">Serviço</span>
+            <span className="text-xs font-medium text-amber-400 truncate">{os.servico}</span>
+          </div>
         )}
 
         {/* Endereço */}
         {os.endereco_final && (
-          <p className="text-xs text-slate-600 truncate mb-1">{os.endereco_final}</p>
+          <div className="flex items-baseline gap-1.5 mb-1">
+            <span className="text-[10px] font-semibold text-slate-600 uppercase tracking-wider shrink-0">Endereço</span>
+            <span className="text-xs text-slate-300 truncate">{os.endereco_final}</span>
+          </div>
         )}
 
         {/* Descrição clicável */}
-        <button onClick={() => setExpandido(e => !e)} className="text-left w-full group">
-          <p className={`text-sm text-slate-300 group-hover:text-white transition-colors ${expandido ? '' : 'truncate'}`}>
-            {os.descricao || '—'}
-          </p>
-          {!expandido && os.descricao?.length > 60 && (
-            <span className="text-[10px] text-slate-600 group-hover:text-indigo-400 transition-colors">ver mais</span>
-          )}
-        </button>
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-[10px] font-semibold text-slate-600 uppercase tracking-wider shrink-0">Descrição</span>
+          <button onClick={() => setExpandido(e => !e)} className="text-left min-w-0 flex-1 group">
+            <p className={`text-xs text-slate-400 group-hover:text-slate-200 transition-colors ${expandido ? '' : 'truncate'}`}>
+              {os.descricao || '—'}
+            </p>
+            {!expandido && os.descricao?.length > 60 && (
+              <span className="text-[10px] text-slate-600 group-hover:text-indigo-400 transition-colors">ver mais</span>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Botões de posição */}
@@ -307,11 +377,7 @@ export default function FilaOS() {
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-rose-500 inline-block"/>{'> 30d'}</span>
           </div>
           {servicos.length > 0 && (
-            <select value={filtroServico} onChange={e => setFiltroServico(e.target.value)}
-              className="bg-white/[0.04] border border-white/[0.08] text-xs text-slate-400 rounded-xl px-3 py-2 focus:outline-none">
-              <option value="" className="bg-[#111827]">Todos os serviços</option>
-              {servicos.map(s => <option key={s} value={s} className="bg-[#111827]">{s}</option>)}
-            </select>
+            <ComboServico opcoes={servicos} valor={filtroServico} onChange={setFiltroServico} />
           )}
           <button onClick={() => buscarOS()} disabled={carregando}
             className="px-3 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs text-slate-400 hover:text-white transition-all disabled:opacity-50">
