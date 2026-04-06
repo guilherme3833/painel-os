@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import ReactECharts from 'echarts-for-react'
-import { buscarConfigFaltaAgua, salvarConfigFaltaAgua } from '../firebase'
+import { buscarConfigFaltaAgua, salvarConfigFaltaAgua, registrarLog } from '../firebase'
 import { useAuth } from '../contexts/AuthContext'
 
 const API_DIA   = 'https://automacao.octek.com.br/webhook/chamados/dia'
@@ -149,6 +149,7 @@ function Skeleton({ h = 'h-40' }) {
 
 // ── Modal de configuração ──────────────────────────────────────────────────────
 function ModalConfig({ onFechar, onSalvar }) {
+  const { usuario } = useAuth()
   const [tipos, setTipos] = useState([])
   const [selecionados, setSelecionados] = useState(new Set())
   const [carregando, setCarregando] = useState(true)
@@ -187,6 +188,7 @@ function ModalConfig({ onFechar, onSalvar }) {
     try {
       const ids = [...selecionados]
       await salvarConfigFaltaAgua(ids)
+      registrarLog(usuario.uid, usuario.displayName, 'configurou_falta_agua', { qtd: ids.length }).catch(() => {})
       onSalvar(ids)
     } catch (e) {
       setErro('Erro ao salvar: ' + e.message)

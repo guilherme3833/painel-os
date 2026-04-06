@@ -17,10 +17,13 @@
     "echarts": "^6.0.0",
     "echarts-for-react": "^3.0.6",
     "firebase": "^12.11.0",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.7",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "recharts": "^3.8.1",
-    "tailwindcss": "^4.2.2"
+    "tailwindcss": "^4.2.2",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

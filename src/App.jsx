@@ -12,6 +12,7 @@ import Protocolos from './pages/Protocolos'
 import ProtocolosDia from './pages/ProtocolosDia'
 import FilaOS from './pages/FilaOS'
 import MinhasOS from './pages/MinhasOS'
+import Logs from './pages/Logs'
 
 function Painel() {
   const { usuario } = useAuth()
@@ -52,6 +53,7 @@ function Painel() {
     protocolos_dia: <ProtocolosDia />,
     fila_os: <FilaOS />,
     minhas_os: <MinhasOS />,
+    logs: <Logs />,
     usuarios: <Usuarios />,
     perfil: <Perfil />,
   }

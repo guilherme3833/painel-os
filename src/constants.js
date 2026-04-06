@@ -80,6 +80,14 @@ export const PAGINAS_CONFIG = [
     ],
   },
   {
+    id: 'logs',
+    label: 'Log de Atividades',
+    descricao: 'Histórico de ações dos usuários',
+    acoes: [
+      { id: 'ver', label: 'Visualizar' },
+    ],
+  },
+  {
     id: 'usuarios',
     label: 'Usuários',
     descricao: 'Gerenciar usuários e perfis de acesso',

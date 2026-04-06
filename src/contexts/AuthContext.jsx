@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { onAuthStateChanged } from 'firebase/auth'
-import { auth, buscarOuCriarUsuario } from '../firebase'
+import { auth, buscarOuCriarUsuario, registrarLog } from '../firebase'
 import { ROLE_ADMIN_ID } from '../constants'
 
 const AuthContext = createContext({
@@ -26,6 +26,7 @@ export function AuthProvider({ children }) {
           setRole(roleId)
           setPermissoes(p)
           setServicosPermitidos(servicos_fila || [])
+          registrarLog(user.uid, user.displayName || user.email, 'login', { email: user.email }).catch(() => {})
         } catch (err) {
           console.error('[AuthContext] erro ao buscar usuário:', err)
           setRole('visualizador')

@@ -20,6 +20,12 @@ import {
   getDocs,
   onSnapshot,
   serverTimestamp,
+  addDoc,
+  query,
+  orderBy,
+  limit,
+  where,
+  Timestamp,
 } from 'firebase/firestore'
 import { ROLE_ADMIN_ID, PERMISSOES_ADMIN, PAGINAS_CONFIG } from './constants'
 
@@ -234,6 +240,34 @@ export async function atribuirOS(codigo, uid, nome) {
   const snap = await getDoc(ref)
   const atual = snap.exists() ? snap.data() : {}
   return setDoc(ref, { ...atual, [String(codigo)]: { uid, nome } })
+}
+
+// ── Log de atividades ─────────────────────────────────────────────────────────
+
+export async function registrarLog(uid, nome, acao, detalhes = {}) {
+  const agora = new Date()
+  const expiraEm = new Date(agora.getTime() + 300 * 24 * 60 * 60 * 1000)
+  return addDoc(collection(db, 'logs'), {
+    uid,
+    nome,
+    acao,
+    detalhes,
+    criadoEm: serverTimestamp(),
+    expiraEm: Timestamp.fromDate(expiraEm),
+  })
+}
+
+export function ouvirLogs(callback) {
+  const limite300 = Timestamp.fromDate(new Date(Date.now() - 300 * 24 * 60 * 60 * 1000))
+  const q = query(
+    collection(db, 'logs'),
+    where('criadoEm', '>=', limite300),
+    orderBy('criadoEm', 'desc'),
+    limit(500)
+  )
+  return onSnapshot(q, snap =>
+    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+  )
 }
 
 export async function removerAtribuicaoOS(codigo) {

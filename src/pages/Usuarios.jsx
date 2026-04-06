@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { listarUsuarios, atualizarRoleUsuario, listarPerfis, salvarPerfil, deletarPerfil, listarConvites, criarUsuarioAdmin, deletarConvite } from '../firebase'
+import { listarUsuarios, atualizarRoleUsuario, listarPerfis, salvarPerfil, deletarPerfil, listarConvites, criarUsuarioAdmin, deletarConvite, registrarLog } from '../firebase'
 import { useAuth } from '../contexts/AuthContext'
 import { PAGINAS_CONFIG, PERMISSOES_PADRAO, COR_OPTIONS, corDoPerfil, ROLE_ADMIN_ID } from '../constants'
 
@@ -22,6 +22,8 @@ function AbaUsuarios({ perfis }) {
     try {
       await atualizarRoleUsuario(uid, roleId)
       setUsuarios(prev => prev.map(u => u.uid === uid ? { ...u, roleId } : u))
+      const alvo = usuarios.find(u => u.uid === uid)
+      registrarLog(usuarioAtual.uid, usuarioAtual.displayName, 'alterou_role', { usuario: alvo?.nome || uid, novoPerfil: roleId }).catch(() => {})
       setFeedback(f => ({ ...f, [uid]: 'ok' }))
       setTimeout(() => setFeedback(f => ({ ...f, [uid]: null })), 2000)
     } catch (err) {
@@ -107,6 +109,7 @@ function AbaUsuarios({ perfis }) {
 const API_FILA = 'https://automacao.octek.com.br/webhook/os/fila'
 
 function ModalPerfil({ perfil, onSalvar, onFechar }) {
+  const { usuario: usuarioAtual } = useAuth()
   const editando = !!perfil
   const [nome, setNome] = useState(perfil?.nome || '')
   const [cor, setCor] = useState(perfil?.cor || 'indigo')
@@ -137,6 +140,7 @@ function ModalPerfil({ perfil, onSalvar, onFechar }) {
     try {
       const id = editando ? perfil.id : nome.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')
       await salvarPerfil(id, { nome: nome.trim(), cor, permissoes, servicos_fila: servicosFila })
+      registrarLog(usuarioAtual?.uid, usuarioAtual?.displayName, 'alterou_perfil', { perfil: nome.trim() }).catch(() => {})
       onSalvar()
     } catch {
       setErro('Erro ao salvar. Tente novamente.')
@@ -416,6 +420,7 @@ function AbaConvites({ perfis }) {
     setErro('')
     try {
       await criarUsuarioAdmin(emailNorm, roleId, usuarioAtual.uid)
+      registrarLog(usuarioAtual.uid, usuarioAtual.displayName, 'criou_usuario', { email: emailNorm, perfil: roleId }).catch(() => {})
       setEmail('')
       carregar()
     } catch (err) {
@@ -432,6 +437,7 @@ function AbaConvites({ perfis }) {
     setDeletando(id)
     try {
       await deletarConvite(id)
+      registrarLog(usuarioAtual.uid, usuarioAtual.displayName, 'deletou_convite', { email: id }).catch(() => {})
       setConvites(prev => prev.filter(c => c.id !== id))
     } catch {}
     setDeletando(null)

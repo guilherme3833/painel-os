@@ -16,7 +16,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useAuth } from '../contexts/AuthContext'
-import { ouvirFilaOS, salvarFilaOS, ouvirAtribuicoes, atribuirOS, removerAtribuicaoOS, listarUsuarios, listarPerfis } from '../firebase'
+import { ouvirFilaOS, salvarFilaOS, ouvirAtribuicoes, atribuirOS, removerAtribuicaoOS, listarUsuarios, listarPerfis, registrarLog } from '../firebase'
 
 const API = 'https://automacao.octek.com.br/webhook/os/fila'
 
@@ -357,7 +357,7 @@ function ItemOS({ os, posicao, podeReordenar, podeAtribuir, atribuicao, onAtribu
 
 // ── Página principal ───────────────────────────────────────────────────────────
 export default function FilaOS() {
-  const { temPermissao, servicosPermitidos } = useAuth()
+  const { usuario, temPermissao, servicosPermitidos } = useAuth()
   const podeReordenar = temPermissao('fila_os', 'reordenar')
   const podeAtribuir  = temPermissao('fila_os', 'atribuir')
 
@@ -437,6 +437,7 @@ export default function FilaOS() {
     setSalvando(true)
     try {
       await salvarFilaOS(novaLista.map(o => Number(o.codigo)))
+      registrarLog(usuario.uid, usuario.displayName, 'reordenou_fila', {}).catch(() => {})
     } catch (e) {
       setErro('Erro ao salvar: ' + e.message)
     } finally {
@@ -513,10 +514,12 @@ export default function FilaOS() {
           atribuicaoAtual={atribuicoes[String(osAtribuindo.codigo)]}
           onAtribuir={async (uid, nome) => {
             await atribuirOS(osAtribuindo.codigo, uid, nome)
+            registrarLog(usuario.uid, usuario.displayName, 'atribuiu_os', { os: osAtribuindo.numero, para: nome }).catch(() => {})
             setOsAtribuindo(null)
           }}
           onRemover={async () => {
             await removerAtribuicaoOS(osAtribuindo.codigo)
+            registrarLog(usuario.uid, usuario.displayName, 'removeu_atribuicao', { os: osAtribuindo.numero }).catch(() => {})
             setOsAtribuindo(null)
           }}
           onFechar={() => setOsAtribuindo(null)}
