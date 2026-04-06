@@ -221,6 +221,30 @@ export function ouvirFilaOS(callback) {
   })
 }
 
+// ── Atribuições de OS ─────────────────────────────────────────────────────────
+
+export function ouvirAtribuicoes(callback) {
+  return onSnapshot(doc(db, 'config', 'fila_os_atribuicao'), snap => {
+    callback(snap.exists() ? snap.data() : {})
+  })
+}
+
+export async function atribuirOS(codigo, uid, nome) {
+  const ref = doc(db, 'config', 'fila_os_atribuicao')
+  const snap = await getDoc(ref)
+  const atual = snap.exists() ? snap.data() : {}
+  return setDoc(ref, { ...atual, [String(codigo)]: { uid, nome } })
+}
+
+export async function removerAtribuicaoOS(codigo) {
+  const ref = doc(db, 'config', 'fila_os_atribuicao')
+  const snap = await getDoc(ref)
+  if (!snap.exists()) return
+  const atual = { ...snap.data() }
+  delete atual[String(codigo)]
+  return setDoc(ref, atual)
+}
+
 export async function criarUsuarioAdmin(email, roleId, criadoPor) {
   // Usa app secundária para não deslogar o admin atual
   const appSecundario = initializeApp(firebaseConfig, `temp_${Date.now()}`)

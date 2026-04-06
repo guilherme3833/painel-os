@@ -26,6 +26,18 @@ const ATALHOS = [
     cor: 'violet',
   },
   {
+    id: 'minhas_os',
+    label: 'Minhas OS',
+    descricao: 'Ordens de serviço atribuídas a mim',
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+    ),
+    cor: 'rose',
+  },
+  {
     id: 'protocolos',
     label: 'Protocolos',
     descricao: 'Dashboard de chamados por período',
@@ -85,6 +97,7 @@ const CORES = {
   violet:  { card: 'border-violet-500/20  bg-violet-500/5  hover:border-violet-500/40  hover:bg-violet-500/10',  icon: 'bg-violet-500/15 text-violet-400' },
   cyan:    { card: 'border-cyan-500/20    bg-cyan-500/5    hover:border-cyan-500/40    hover:bg-cyan-500/10',    icon: 'bg-cyan-500/15   text-cyan-400'   },
   emerald: { card: 'border-emerald-500/20 bg-emerald-500/5 hover:border-emerald-500/40 hover:bg-emerald-500/10', icon: 'bg-emerald-500/15 text-emerald-400' },
+  rose:    { card: 'border-rose-500/20    bg-rose-500/5    hover:border-rose-500/40    hover:bg-rose-500/10',    icon: 'bg-rose-500/15   text-rose-400'   },
   blue:    { card: 'border-blue-500/20    bg-blue-500/5    hover:border-blue-500/40    hover:bg-blue-500/10',    icon: 'bg-blue-500/15   text-blue-400'   },
   amber:   { card: 'border-amber-500/20   bg-amber-500/5   hover:border-amber-500/40   hover:bg-amber-500/10',   icon: 'bg-amber-500/15  text-amber-400'  },
 }

@@ -58,6 +58,16 @@ export const PAGINAS_CONFIG = [
     acoes: [
       { id: 'ver', label: 'Visualizar' },
       { id: 'reordenar', label: 'Reordenar' },
+      { id: 'atribuir', label: 'Atribuir OS' },
+      { id: 'aceitar_atribuicao', label: 'Receber atribuições' },
+    ],
+  },
+  {
+    id: 'minhas_os',
+    label: 'Minhas OS',
+    descricao: 'Ordens de serviço atribuídas ao usuário logado',
+    acoes: [
+      { id: 'ver', label: 'Visualizar' },
     ],
   },
   {

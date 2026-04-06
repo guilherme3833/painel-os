@@ -16,7 +16,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useAuth } from '../contexts/AuthContext'
-import { ouvirFilaOS, salvarFilaOS } from '../firebase'
+import { ouvirFilaOS, salvarFilaOS, ouvirAtribuicoes, atribuirOS, removerAtribuicaoOS, listarUsuarios, listarPerfis } from '../firebase'
 
 const API = 'https://automacao.octek.com.br/webhook/os/fila'
 
@@ -117,7 +117,85 @@ function ComboServico({ opcoes, valor, onChange }) {
   )
 }
 
-function ItemOS({ os, posicao, podeReordenar, onTopo, onSubir, onDescer, onFim }) {
+// ── Modal de atribuição ────────────────────────────────────────────────────────
+function ModalAtribuir({ os, atribuicaoAtual, onAtribuir, onRemover, onFechar }) {
+  const [usuarios, setUsuarios] = useState([])
+  const [carregando, setCarregando] = useState(true)
+
+  useEffect(() => {
+    Promise.all([listarUsuarios(), listarPerfis()]).then(([users, perfis]) => {
+      const perfisComAtribuicao = new Set(
+        perfis.filter(p => p.permissoes?.fila_os?.aceitar_atribuicao).map(p => p.id)
+      )
+      const filtrados = users.filter(u => perfisComAtribuicao.has(u.roleId))
+      setUsuarios(filtrados)
+      setCarregando(false)
+    }).catch(() => setCarregando(false))
+  }, [])
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      onClick={e => e.target === e.currentTarget && onFechar()}>
+      <div className="bg-[#141c2e] border border-white/[0.08] rounded-2xl w-full max-w-sm mx-4">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+          <div>
+            <p className="text-sm font-semibold text-white">Atribuir OS {os.numero}</p>
+            <p className="text-xs text-slate-500 mt-0.5">Selecione quem vai atender</p>
+          </div>
+          <button onClick={onFechar} className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-500 hover:text-white hover:bg-white/10 transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <div className="px-5 py-3 max-h-72 overflow-y-auto">
+          {carregando ? (
+            <div className="flex justify-center py-6">
+              <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : usuarios.length === 0 ? (
+            <p className="text-slate-500 text-sm py-4 text-center">Nenhum usuário com permissão de receber atribuições.</p>
+          ) : (
+            <div className="space-y-1">
+              {atribuicaoAtual && (
+                <button onClick={onRemover}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:bg-rose-500/10 transition-all group">
+                  <div className="w-7 h-7 rounded-full bg-rose-500/20 flex items-center justify-center shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 text-rose-400">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </div>
+                  <span className="text-xs text-rose-400">Remover atribuição</span>
+                </button>
+              )}
+              {usuarios.map(u => {
+                const selecionado = atribuicaoAtual?.uid === u.uid
+                return (
+                  <button key={u.uid} onClick={() => onAtribuir(u.uid, u.nome || u.email)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
+                      selecionado ? 'bg-indigo-500/15 border border-indigo-500/30' : 'hover:bg-white/[0.04] border border-transparent'
+                    }`}>
+                    <div className="w-7 h-7 rounded-full bg-indigo-500/20 flex items-center justify-center shrink-0 text-xs font-bold text-indigo-400">
+                      {(u.nome || u.email || '?')[0].toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm text-slate-200 truncate">{u.nome || u.email}</p>
+                      {u.nome && <p className="text-[10px] text-slate-600 truncate">{u.email}</p>}
+                    </div>
+                    {selecionado && <span className="ml-auto text-indigo-400 text-xs shrink-0">✓</span>}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ItemOS({ os, posicao, podeReordenar, podeAtribuir, atribuicao, onAtribuir, onTopo, onSubir, onDescer, onFim }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: os.codigo })
   const [expandido, setExpandido] = useState(false)
 
@@ -200,6 +278,14 @@ function ItemOS({ os, posicao, podeReordenar, onTopo, onSubir, onDescer, onFim }
             )}
           </button>
         </div>
+
+        {/* Atribuído a */}
+        {atribuicao && (
+          <div className="flex items-center gap-1.5 mt-1.5">
+            <span className="text-[10px] font-semibold text-slate-600 uppercase tracking-wider shrink-0">Atribuído</span>
+            <span className="text-xs text-emerald-400 font-medium">{atribuicao.nome}</span>
+          </div>
+        )}
       </div>
 
       {/* Botões de posição */}
@@ -235,6 +321,19 @@ function ItemOS({ os, posicao, podeReordenar, onTopo, onSubir, onDescer, onFim }
           </button>
         </div>
       )}
+
+      {/* Botão atribuir */}
+      {podeAtribuir && (
+        <button onClick={onAtribuir} title="Atribuir OS"
+          className={`shrink-0 self-center mr-2 w-7 h-7 flex items-center justify-center rounded-lg transition-all ${
+            atribuicao ? 'text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20' : 'text-slate-600 hover:text-slate-300 hover:bg-white/[0.06]'
+          }`}>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </button>
+      )}
     </div>
   )
 }
@@ -243,15 +342,18 @@ function ItemOS({ os, posicao, podeReordenar, onTopo, onSubir, onDescer, onFim }
 export default function FilaOS() {
   const { temPermissao, servicosPermitidos } = useAuth()
   const podeReordenar = temPermissao('fila_os', 'reordenar')
+  const podeAtribuir  = temPermissao('fila_os', 'atribuir')
 
-  const [lista, setLista]             = useState([])
+  const [lista, setLista]                 = useState([])
+  const [atribuicoes, setAtribuicoes]     = useState({})
   const [filtroServico, setFiltroServico] = useState('')
-  const [carregando, setCarregando]   = useState(true)
-  const [atualizando, setAtualizando] = useState(false)
-  const [salvando, setSalvando]       = useState(false)
-  const [erro, setErro]               = useState('')
-  const osListRef  = useRef([])   // dados brutos do MySQL
-  const ordemRef   = useRef([])   // ordem atual do Firestore
+  const [carregando, setCarregando]       = useState(true)
+  const [atualizando, setAtualizando]     = useState(false)
+  const [salvando, setSalvando]           = useState(false)
+  const [erro, setErro]                   = useState('')
+  const [osAtribuindo, setOsAtribuindo]   = useState(null)
+  const osListRef  = useRef([])
+  const ordemRef   = useRef([])
   const timerRef   = useRef(null)
 
   const sensors = useSensors(
@@ -287,12 +389,18 @@ export default function FilaOS() {
     }
   }, [])
 
-  // Listener realtime Firestore
+  // Listener realtime — ordem
   useEffect(() => {
     const unsubscribe = ouvirFilaOS(ordem => {
       ordemRef.current = ordem
       setLista(aplicarOrdem(osListRef.current, ordem))
     })
+    return () => unsubscribe()
+  }, [])
+
+  // Listener realtime — atribuições
+  useEffect(() => {
+    const unsubscribe = ouvirAtribuicoes(data => setAtribuicoes(data))
     return () => unsubscribe()
   }, [])
 
@@ -363,6 +471,22 @@ export default function FilaOS() {
   return (
     <div className="px-6 py-6 max-w-3xl mx-auto fade-up">
 
+      {osAtribuindo && (
+        <ModalAtribuir
+          os={osAtribuindo}
+          atribuicaoAtual={atribuicoes[String(osAtribuindo.codigo)]}
+          onAtribuir={async (uid, nome) => {
+            await atribuirOS(osAtribuindo.codigo, uid, nome)
+            setOsAtribuindo(null)
+          }}
+          onRemover={async () => {
+            await removerAtribuicaoOS(osAtribuindo.codigo)
+            setOsAtribuindo(null)
+          }}
+          onFechar={() => setOsAtribuindo(null)}
+        />
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -419,6 +543,9 @@ export default function FilaOS() {
             <div className="flex flex-col gap-1.5">
               {listaFiltrada.map((os, i) => (
                 <ItemOS key={os.codigo} os={os} posicao={i + 1} podeReordenar={podeReordenar}
+                  podeAtribuir={podeAtribuir}
+                  atribuicao={atribuicoes[String(os.codigo)]}
+                  onAtribuir={() => setOsAtribuindo(os)}
                   onTopo={() => moverPara(os.codigo, 'topo')}
                   onSubir={() => moverUma(os.codigo, 'subir')}
                   onDescer={() => moverUma(os.codigo, 'descer')}
