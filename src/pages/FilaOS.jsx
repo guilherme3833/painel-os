@@ -175,6 +175,7 @@ export default function FilaOS() {
   const podeReordenar = temPermissao('fila_os', 'reordenar')
 
   const [lista, setLista]             = useState([])
+  const [filtroServico, setFiltroServico] = useState('')
   const [carregando, setCarregando]   = useState(true)
   const [atualizando, setAtualizando] = useState(false)
   const [salvando, setSalvando]       = useState(false)
@@ -283,6 +284,9 @@ export default function FilaOS() {
     }
   }
 
+  const servicos = [...new Set(lista.map(o => o.servico).filter(Boolean))].sort()
+  const listaFiltrada = filtroServico ? lista.filter(o => o.servico === filtroServico) : lista
+
   return (
     <div className="px-6 py-6 max-w-3xl mx-auto fade-up">
 
@@ -291,7 +295,7 @@ export default function FilaOS() {
         <div>
           <h1 className="text-lg font-semibold text-white">Fila de OS</h1>
           <p className="text-sm text-slate-500 mt-0.5 flex items-center gap-2">
-            {carregando ? 'Carregando...' : `${lista.length} ordens abertas`}
+            {carregando ? 'Carregando...' : `${listaFiltrada.length}${filtroServico ? `/${lista.length}` : ''} ordens abertas`}
             {atualizando && <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse inline-block" />}
             {salvando && <span className="text-indigo-400 text-xs animate-pulse">Salvando...</span>}
           </p>
@@ -302,6 +306,13 @@ export default function FilaOS() {
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500 inline-block"/>15–30d</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-rose-500 inline-block"/>{'> 30d'}</span>
           </div>
+          {servicos.length > 0 && (
+            <select value={filtroServico} onChange={e => setFiltroServico(e.target.value)}
+              className="bg-white/[0.04] border border-white/[0.08] text-xs text-slate-400 rounded-xl px-3 py-2 focus:outline-none">
+              <option value="" className="bg-[#111827]">Todos os serviços</option>
+              {servicos.map(s => <option key={s} value={s} className="bg-[#111827]">{s}</option>)}
+            </select>
+          )}
           <button onClick={() => buscarOS()} disabled={carregando}
             className="px-3 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs text-slate-400 hover:text-white transition-all disabled:opacity-50">
             Atualizar
@@ -331,13 +342,13 @@ export default function FilaOS() {
             <div key={i} className="h-14 animate-pulse bg-white/[0.03] rounded-xl" />
           ))}
         </div>
-      ) : lista.length === 0 ? (
-        <div className="flex items-center justify-center h-48 text-slate-600 text-sm">Nenhuma OS aberta</div>
+      ) : listaFiltrada.length === 0 ? (
+        <div className="flex items-center justify-center h-48 text-slate-600 text-sm">Nenhuma OS encontrada</div>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={lista.map(o => o.codigo)} strategy={verticalListSortingStrategy}>
+          <SortableContext items={listaFiltrada.map(o => o.codigo)} strategy={verticalListSortingStrategy}>
             <div className="flex flex-col gap-1.5">
-              {lista.map((os, i) => (
+              {listaFiltrada.map((os, i) => (
                 <ItemOS key={os.codigo} os={os} posicao={i + 1} podeReordenar={podeReordenar}
                   onTopo={() => moverPara(os.codigo, 'topo')}
                   onSubir={() => moverUma(os.codigo, 'subir')}
