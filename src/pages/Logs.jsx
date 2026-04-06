@@ -124,24 +124,6 @@ export default function Logs() {
             {carregando ? 'Carregando...' : `${logsFiltrados.length}${temFiltro ? `/${logs.length}` : ''} registro${logsFiltrados.length !== 1 ? 's' : ''} · últimos 300 dias`}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={exportarExcel} disabled={logsFiltrados.length === 0}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400 hover:bg-emerald-500/20 transition-all disabled:opacity-40">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/>
-            </svg>
-            Excel
-          </button>
-          <button onClick={exportarPDF} disabled={logsFiltrados.length === 0}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-400 hover:bg-rose-500/20 transition-all disabled:opacity-40">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/>
-            </svg>
-            PDF
-          </button>
-        </div>
       </div>
 
       {/* Filtros */}
@@ -193,6 +175,27 @@ export default function Logs() {
               {Object.entries(ACOES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
             </select>
           </div>
+        </div>
+
+        {/* Exportar */}
+        <div className="flex items-center gap-2 mt-4 pt-3 border-t border-white/[0.06]">
+          <span className="text-xs text-slate-500 mr-1">Exportar lista atual:</span>
+          <button onClick={exportarExcel} disabled={logsFiltrados.length === 0}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-sm font-medium text-emerald-400 hover:bg-emerald-500/25 transition-all disabled:opacity-40">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/>
+            </svg>
+            Excel
+          </button>
+          <button onClick={exportarPDF} disabled={logsFiltrados.length === 0}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-500/15 border border-rose-500/30 text-sm font-medium text-rose-400 hover:bg-rose-500/25 transition-all disabled:opacity-40">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/>
+            </svg>
+            PDF
+          </button>
         </div>
       </div>
 

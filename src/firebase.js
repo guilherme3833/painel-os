@@ -24,8 +24,6 @@ import {
   query,
   orderBy,
   limit,
-  where,
-  Timestamp,
 } from 'firebase/firestore'
 import { ROLE_ADMIN_ID, PERMISSOES_ADMIN, PAGINAS_CONFIG } from './constants'
 
@@ -258,16 +256,18 @@ export async function registrarLog(uid, nome, acao, detalhes = {}) {
 }
 
 export function ouvirLogs(callback) {
-  const limite300 = Timestamp.fromDate(new Date(Date.now() - 300 * 24 * 60 * 60 * 1000))
+  const limite300 = Date.now() - 300 * 24 * 60 * 60 * 1000
   const q = query(
     collection(db, 'logs'),
-    where('criadoEm', '>=', limite300),
     orderBy('criadoEm', 'desc'),
     limit(500)
   )
-  return onSnapshot(q, snap =>
-    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })))
-  )
+  return onSnapshot(q, snap => {
+    const docs = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(d => d.criadoEm?.toMillis?.() >= limite300)
+    callback(docs)
+  })
 }
 
 export async function removerAtribuicaoOS(codigo) {
