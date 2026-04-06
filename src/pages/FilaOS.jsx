@@ -1,4 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import * as XLSX from 'xlsx'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 import {
   DndContext,
   closestCenter,
@@ -467,20 +470,9 @@ export default function FilaOS() {
   async function handleDragEnd(event) {
     const { active, over } = event
     if (!over || active.id === over.id) return
-
     const oldIndex = lista.findIndex(o => Number(o.codigo) === Number(active.id))
     const newIndex = lista.findIndex(o => Number(o.codigo) === Number(over.id))
-    const novaLista = arrayMove(lista, oldIndex, newIndex)
-
-    setLista(novaLista)
-    setSalvando(true)
-    try {
-      await salvarFilaOS(novaLista.map(o => Number(o.codigo)))
-    } catch (e) {
-      setErro('Erro ao salvar: ' + e.message)
-    } finally {
-      setSalvando(false)
-    }
+    await salvar(arrayMove(lista, oldIndex, newIndex))
   }
 
   const listaPermitida = servicosPermitidos.length
@@ -505,6 +497,49 @@ export default function FilaOS() {
         .map(a => [a.uid, a])
     ).values()
   ].sort((a, b) => a.nome.localeCompare(b.nome))
+
+  function exportarExcel() {
+    const dados = listaFiltrada.map((o, i) => ({
+      'Posição': i + 1,
+      'Nº OS': o.numero,
+      'Serviço': o.servico || '',
+      'Endereço': o.endereco_final || '',
+      'Descrição': o.descricao || '',
+      'Dias espera': diasEspera(o.data_abertura),
+      'Atribuído a': atribuicoes[String(o.codigo)]?.nome || '',
+    }))
+    const ws = XLSX.utils.json_to_sheet(dados)
+    ws['!cols'] = [{ wch: 8 }, { wch: 10 }, { wch: 28 }, { wch: 36 }, { wch: 50 }, { wch: 12 }, { wch: 22 }]
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Fila OS')
+    XLSX.writeFile(wb, `fila_os_${new Date().toISOString().slice(0, 10)}.xlsx`)
+  }
+
+  function exportarPDF() {
+    const doc = new jsPDF({ orientation: 'landscape' })
+    doc.setFontSize(14)
+    doc.text('Fila de OS', 14, 15)
+    doc.setFontSize(9)
+    doc.setTextColor(120)
+    doc.text(`Exportado em ${new Date().toLocaleString('pt-BR')} · ${listaFiltrada.length} ordens`, 14, 22)
+    autoTable(doc, {
+      startY: 28,
+      head: [['Pos.', 'Nº OS', 'Serviço', 'Endereço', 'Dias', 'Atribuído a']],
+      body: listaFiltrada.map((o, i) => [
+        i + 1,
+        o.numero,
+        o.servico || '',
+        o.endereco_final || '',
+        diasEspera(o.data_abertura),
+        atribuicoes[String(o.codigo)]?.nome || '',
+      ]),
+      styles: { fontSize: 8, cellPadding: 3 },
+      headStyles: { fillColor: [79, 70, 229], fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [245, 245, 250] },
+      columnStyles: { 0: { cellWidth: 12 }, 1: { cellWidth: 18 }, 4: { cellWidth: 14 }, 5: { cellWidth: 36 } },
+    })
+    doc.save(`fila_os_${new Date().toISOString().slice(0, 10)}.pdf`)
+  }
 
   return (
     <>
@@ -542,6 +577,22 @@ export default function FilaOS() {
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500 inline-block"/>15–30d</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-rose-500 inline-block"/>{'> 30d'}</span>
           </div>
+          <button onClick={exportarExcel} disabled={listaFiltrada.length === 0}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400 hover:bg-emerald-500/20 transition-all disabled:opacity-40">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/>
+            </svg>
+            Excel
+          </button>
+          <button onClick={exportarPDF} disabled={listaFiltrada.length === 0}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-400 hover:bg-rose-500/20 transition-all disabled:opacity-40">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/>
+            </svg>
+            PDF
+          </button>
           <button onClick={() => buscarOS()} disabled={carregando}
             className="px-3 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs text-slate-400 hover:text-white transition-all disabled:opacity-50">
             Atualizar
